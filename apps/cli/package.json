@@ -1,0 +1,28 @@
+{
+  "name": "@marchen-spec/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MarchenSpec CLI application",
+  "type": "module",
+  "bin": {
+    "marchenspec": "./dist/index.mjs"
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
+    "dev": "tsdown --config tsdown.config.ts --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.10.1",
+    "@marchen-spec/core": "workspace:*",
+    "commander": "^14.0.0"
+  }
+}

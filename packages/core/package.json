@@ -1,0 +1,31 @@
+{
+  "name": "@marchen-spec/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Core workflow layer for MarchenSpec",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
+    "dev": "tsdown --config tsdown.config.ts --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@marchen-spec/config": "workspace:*",
+    "@marchen-spec/fs": "workspace:*",
+    "@marchen-spec/shared": "workspace:*"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "marchenspec",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenSpec-like spec workflow CLI",
+  "type": "module",
+  "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "release:version": "bumpp --all"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.13.2",
+    "@suemor/prettier-config": "^0.0.3",
+    "@types/node": "^24.0.0",
+    "bumpp": "^10.2.3",
+    "eslint": "^9.24.0",
+    "prettier": "^3.5.3",
+    "tsdown": "^0.21.4",
+    "tsx": "^4.19.3",
+    "turbo": "^2.8.20",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
