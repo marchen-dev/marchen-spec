@@ -41,3 +41,5 @@ export function getFoundationStatus(): string {
     `Packages: ${foundation.packageBoundaries.map(item => item.name).join(', ')}`,
   ].join('\n')
 }
+
+export { checkIfInitialized, initializeMarchenSpec } from './init.js'

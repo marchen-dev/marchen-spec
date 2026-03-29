@@ -1,4 +1,4 @@
-export const SPEC_DIRECTORY_NAME = 'openspec'
+export const SPEC_DIRECTORY_NAME = 'marchenspec'
 export const CHANGE_DIRECTORY_NAME = 'changes'
 
 export class MarchenSpecError extends Error {
