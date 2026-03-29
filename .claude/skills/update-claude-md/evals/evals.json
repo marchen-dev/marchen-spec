@@ -1,0 +1,23 @@
+{
+  "skill_name": "update-claude-md",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我刚在 packages/ 下新增了一个 @marchen-spec/logger 包，它依赖 @marchen-spec/shared。能帮我更新所有的 CLAUDE.md 文件吗？这个包主要负责日志记录功能。",
+      "expected_output": "更新根目录和所有子包的 CLAUDE.md，在依赖图中添加 logger 包，为 logger 包创建新的 CLAUDE.md",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我修改了根目录的 package.json，新增了几个 scripts：'clean': 'rm -rf dist', 'prebuild': 'pnpm clean'。请更新 CLAUDE.md 反映这些变化。",
+      "expected_output": "更新根目录 CLAUDE.md 的开发命令部分，添加新的 scripts（但忽略 prebuild 这种内部脚本）",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "检查一下项目的 CLAUDE.md 文档是否完整和一致，如果有问题就更新一下",
+      "expected_output": "扫描所有 CLAUDE.md，检查依赖图一致性、命令准确性，发现问题后更新",
+      "files": []
+    }
+  ]
+}

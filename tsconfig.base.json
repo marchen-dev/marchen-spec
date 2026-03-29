@@ -15,6 +15,12 @@
     "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "@marchen-spec/shared": ["./packages/shared/src/index.ts"],
+      "@marchen-spec/config": ["./packages/config/src/index.ts"],
+      "@marchen-spec/fs": ["./packages/fs/src/index.ts"],
+      "@marchen-spec/core": ["./packages/core/src/index.ts"]
+    }
   }
 }
