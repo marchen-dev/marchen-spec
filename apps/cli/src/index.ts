@@ -1,18 +1,18 @@
 import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
-import { registerInfoCommand } from './commands/info.js'
 import { registerInitCommand } from './commands/init.js'
+import { registerNewCommand } from './commands/new.js'
 
 export function buildCliProgram(): Command {
   const program = new Command()
 
   program
-    .name('marchenspec')
+    .name('marchen')
     .description('OpenSpec-like spec workflow CLI')
     .version('0.1.0')
 
-  registerInfoCommand(program)
   registerInitCommand(program)
+  registerNewCommand(program)
 
   return program
 }

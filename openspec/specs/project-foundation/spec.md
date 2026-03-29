@@ -25,6 +25,11 @@
 - **WHEN** a developer inspects the workspace packages
 - **THEN** 仓库中包含面向 core workflow logic、file-system operations、configuration handling 与 shared primitives 的内部 packages
 
+#### Scenario: fs 包提供完整的文件系统操作
+- **WHEN** 开发者需要执行文件系统操作时
+- **THEN** 所有文件操作通过 `@marchen-spec/fs` 包提供的 API 完成
+- **AND** 其他包不直接使用 Node.js `fs` 模块
+
 ### Requirement: Workspace uses a modern TypeScript build pipeline
 仓库 SHALL 使用 ESM-first TypeScript，并结合 shared base configuration 与 package-level build configuration，使各 workspace 在不复制 compiler policy 的前提下保持一致编译行为。
 

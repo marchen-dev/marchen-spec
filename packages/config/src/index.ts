@@ -1,5 +1,13 @@
 import { SPEC_DIRECTORY_NAME } from '@marchen-spec/shared'
 
+export { DEFAULT_SCHEMA } from './schema.js'
+export {
+  ARTIFACT_TEMPLATES,
+  DESIGN_TEMPLATE,
+  PROPOSAL_TEMPLATE,
+  TASKS_TEMPLATE,
+} from './templates.js'
+
 export interface MarchenSpecConfig {
   readonly specDirectory: string
 }

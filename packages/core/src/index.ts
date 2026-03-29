@@ -42,4 +42,5 @@ export function getFoundationStatus(): string {
   ].join('\n')
 }
 
+export { createChange, isValidChangeName } from './change.js'
 export { checkIfInitialized, initializeMarchenSpec } from './init.js'

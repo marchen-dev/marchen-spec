@@ -215,6 +215,13 @@ export function registerExampleCommand(program: Command): void {
 5. **类型定义**: 共享类型定义在 shared 包，避免重复定义
 6. **测试覆盖**: 新功能必须包含测试，确保核心逻辑有测试覆盖
 
+## 知识库
+
+项目知识库位于 `knowledge/` 目录，存放项目进展、调研结论和技术决策。
+
+**新对话开始时**，先阅读 `knowledge/overview.md` 获取项目全景视图。
+需要深入了解某个主题时，查阅 `knowledge/research/_index.md` 和 `knowledge/decisions/_index.md`。
+
 ## Turbo 缓存
 
 Turborepo 会缓存构建和测试结果到 `.turbo/` 目录（已在 .gitignore）。如需清除缓存：
