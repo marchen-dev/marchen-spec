@@ -1,6 +1,6 @@
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
-import { listChanges } from '@marchen-spec/core'
+import { ChangeManager, Workspace } from '@marchen-spec/core'
 import { MarchenSpecError } from '@marchen-spec/shared'
 
 /**
@@ -33,7 +33,9 @@ export function registerListCommand(program: Command): void {
       p.intro('MarchenSpec CLI')
 
       try {
-        const changes = await listChanges()
+        const workspace = new Workspace()
+        const changeManager = new ChangeManager(workspace)
+        const changes = await changeManager.list()
 
         if (changes.length === 0) {
           p.log.info('暂无 open 状态的变更')
@@ -45,19 +47,18 @@ export function registerListCommand(program: Command): void {
         const nameWidth = Math.max(4, ...changes.map((c) => c.name.length))
         const schemaWidth = Math.max(6, ...changes.map((c) => c.schema.length))
 
-        // 表头
+        // 构建表格内容
         const header = `${'名称'.padEnd(nameWidth - 2)}  ${'Schema'.padEnd(schemaWidth)}  创建时间`
-        const separator = '─'.repeat(header.length + 4)
+        const separator = `${'─'.repeat(nameWidth)}  ${'─'.repeat(schemaWidth)}  ${'─'.repeat(8)}`
 
-        p.log.info(`共 ${changes.length} 个 open 变更：\n`)
-        p.log.message(header)
-        p.log.message(separator)
+        const rows = changes.map((change) => {
+          return `${change.name.padEnd(nameWidth)}  ${change.schema.padEnd(schemaWidth)}  ${timeAgo(change.createdAt)}`
+        })
 
-        // 逐行输出变更信息
-        for (const change of changes) {
-          const row = `${change.name.padEnd(nameWidth)}  ${change.schema.padEnd(schemaWidth)}  ${timeAgo(change.createdAt)}`
-          p.log.message(row)
-        }
+        // 合并为一个字符串一次输出，避免 clack 分隔
+        const table = [header, separator, ...rows].join('\n')
+
+        p.log.info(`共 ${changes.length} 个 open 变更：\n\n${table}`)
 
         p.outro('运行 marchen status <name> 查看变更详情')
       } catch (error) {

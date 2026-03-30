@@ -1,7 +1,7 @@
 import * as fs from '@marchen-spec/fs'
 import { MarchenSpecError } from '@marchen-spec/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createChange, isValidChangeName, listChanges } from '../src/index.js'
+import { ChangeManager, Workspace } from '../src/index.js'
 
 // Mock fs 层，避免真实文件操作
 vi.mock('@marchen-spec/fs', async (importOriginal) => {
@@ -17,66 +17,70 @@ vi.mock('@marchen-spec/fs', async (importOriginal) => {
   }
 })
 
-describe('isValidChangeName 名称校验', () => {
+describe('changeManager.isValidName 名称校验', () => {
   it('合法的 kebab-case 名称', () => {
-    expect(isValidChangeName('add-dark-mode')).toBe(true)
-    expect(isValidChangeName('fix-bug')).toBe(true)
-    expect(isValidChangeName('feature123')).toBe(true)
-    expect(isValidChangeName('a')).toBe(true)
-    expect(isValidChangeName('add-v2-support')).toBe(true)
+    expect(ChangeManager.isValidName('add-dark-mode')).toBe(true)
+    expect(ChangeManager.isValidName('fix-bug')).toBe(true)
+    expect(ChangeManager.isValidName('feature123')).toBe(true)
+    expect(ChangeManager.isValidName('a')).toBe(true)
+    expect(ChangeManager.isValidName('add-v2-support')).toBe(true)
   })
 
   it('不合法的名称', () => {
-    expect(isValidChangeName('Add-Dark-Mode')).toBe(false)
-    expect(isValidChangeName('add_dark_mode')).toBe(false)
-    expect(isValidChangeName('add dark mode')).toBe(false)
-    expect(isValidChangeName('-leading-dash')).toBe(false)
-    expect(isValidChangeName('trailing-dash-')).toBe(false)
-    expect(isValidChangeName('')).toBe(false)
-    expect(isValidChangeName('double--dash')).toBe(false)
+    expect(ChangeManager.isValidName('Add-Dark-Mode')).toBe(false)
+    expect(ChangeManager.isValidName('add_dark_mode')).toBe(false)
+    expect(ChangeManager.isValidName('add dark mode')).toBe(false)
+    expect(ChangeManager.isValidName('-leading-dash')).toBe(false)
+    expect(ChangeManager.isValidName('trailing-dash-')).toBe(false)
+    expect(ChangeManager.isValidName('')).toBe(false)
+    expect(ChangeManager.isValidName('double--dash')).toBe(false)
   })
 })
 
-describe('createChange 创建变更', () => {
+describe('changeManager.create 创建变更', () => {
+  let workspace: Workspace
+  let manager: ChangeManager
+
   beforeEach(() => {
     vi.clearAllMocks()
+    workspace = new Workspace('/test/root')
+    manager = new ChangeManager(workspace)
     // 默认：已初始化，变更不存在
     vi.mocked(fs.exists).mockResolvedValue(false)
   })
 
   it('未初始化时应该抛出错误', async () => {
-    // exists 对所有路径都返回 false（包括 specDir 检查）
     vi.mocked(fs.exists).mockResolvedValue(false)
 
-    await expect(createChange('my-feature')).rejects.toThrow(MarchenSpecError)
-    await expect(createChange('my-feature')).rejects.toThrow('尚未初始化')
+    await expect(manager.create('my-feature')).rejects.toThrow(MarchenSpecError)
+    await expect(manager.create('my-feature')).rejects.toThrow('尚未初始化')
   })
 
   it('名称格式错误时应该抛出错误', async () => {
-    // checkIfInitialized → true
+    // isInitialized → true
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
 
-    await expect(createChange('Bad_Name')).rejects.toThrow(MarchenSpecError)
+    await expect(manager.create('Bad_Name')).rejects.toThrow(MarchenSpecError)
 
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
-    await expect(createChange('Bad_Name')).rejects.toThrow('不合法')
+    await expect(manager.create('Bad_Name')).rejects.toThrow('不合法')
   })
 
   it('变更已存在时应该抛出错误', async () => {
-    // checkIfInitialized → true，变更目录 exists → true
+    // isInitialized → true，变更目录 exists → true
     vi.mocked(fs.exists).mockResolvedValue(true)
 
-    await expect(createChange('my-feature')).rejects.toThrow(MarchenSpecError)
-    await expect(createChange('my-feature')).rejects.toThrow('已存在')
+    await expect(manager.create('my-feature')).rejects.toThrow(MarchenSpecError)
+    await expect(manager.create('my-feature')).rejects.toThrow('已存在')
   })
 
   it('正常创建变更', async () => {
-    // checkIfInitialized → true，变更目录 → false
+    // isInitialized → true，变更目录 → false
     vi.mocked(fs.exists)
       .mockResolvedValueOnce(true) // specDir exists
       .mockResolvedValueOnce(false) // changeDir not exists
 
-    await createChange('my-feature')
+    await manager.create('my-feature')
 
     // 创建目录（变更根目录 + specs 子目录）
     expect(fs.ensureDir).toHaveBeenCalledTimes(2)
@@ -109,38 +113,37 @@ describe('createChange 创建变更', () => {
   })
 })
 
-describe('listChanges 列出变更', () => {
+describe('changeManager.list 列出变更', () => {
+  let workspace: Workspace
+  let manager: ChangeManager
+
   beforeEach(() => {
     vi.clearAllMocks()
+    workspace = new Workspace('/test/root')
+    manager = new ChangeManager(workspace)
   })
 
   it('未初始化时应该抛出错误', async () => {
     vi.mocked(fs.exists).mockResolvedValue(false)
 
-    await expect(listChanges()).rejects.toThrow(MarchenSpecError)
-    await expect(listChanges()).rejects.toThrow('尚未初始化')
+    await expect(manager.list()).rejects.toThrow(MarchenSpecError)
+    await expect(manager.list()).rejects.toThrow('尚未初始化')
   })
 
   it('无变更时返回空数组', async () => {
-    // checkIfInitialized → true
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
-    // listDir → 空目录
     vi.mocked(fs.listDir).mockResolvedValueOnce([])
 
-    const result = await listChanges()
+    const result = await manager.list()
     expect(result).toEqual([])
   })
 
   it('正常列出变更并按创建时间降序排列', async () => {
-    // checkIfInitialized → true
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
-    // listDir → 两个变更目录
     vi.mocked(fs.listDir).mockResolvedValueOnce(['old-change', 'new-change'])
-    // 两个目录的 .metadata.yaml 都存在
     vi.mocked(fs.exists)
       .mockResolvedValueOnce(true)
       .mockResolvedValueOnce(true)
-    // readYaml → 元数据
     vi.mocked(fs.readYaml)
       .mockResolvedValueOnce({
         name: 'old-change',
@@ -155,9 +158,8 @@ describe('listChanges 列出变更', () => {
         status: 'open',
       })
 
-    const result = await listChanges()
+    const result = await manager.list()
     expect(result).toHaveLength(2)
-    // 最新的在前
     expect(result[0]!.name).toBe('new-change')
     expect(result[1]!.name).toBe('old-change')
   })
@@ -165,7 +167,6 @@ describe('listChanges 列出变更', () => {
   it('应过滤掉 archive 目录', async () => {
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
     vi.mocked(fs.listDir).mockResolvedValueOnce(['my-change', 'archive'])
-    // 只有 my-change 的元数据被检查
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
     vi.mocked(fs.readYaml).mockResolvedValueOnce({
       name: 'my-change',
@@ -174,7 +175,7 @@ describe('listChanges 列出变更', () => {
       status: 'open',
     })
 
-    const result = await listChanges()
+    const result = await manager.list()
     expect(result).toHaveLength(1)
     expect(result[0]!.name).toBe('my-change')
   })
@@ -182,7 +183,6 @@ describe('listChanges 列出变更', () => {
   it('应跳过缺失元数据文件的目录', async () => {
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
     vi.mocked(fs.listDir).mockResolvedValueOnce(['valid-change', 'broken-change'])
-    // valid-change 元数据存在，broken-change 不存在
     vi.mocked(fs.exists)
       .mockResolvedValueOnce(true)
       .mockResolvedValueOnce(false)
@@ -193,7 +193,7 @@ describe('listChanges 列出变更', () => {
       status: 'open',
     })
 
-    const result = await listChanges()
+    const result = await manager.list()
     expect(result).toHaveLength(1)
     expect(result[0]!.name).toBe('valid-change')
   })

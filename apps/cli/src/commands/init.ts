@@ -1,11 +1,11 @@
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
-import { checkIfInitialized, initializeMarchenSpec } from '@marchen-spec/core'
+import { Workspace } from '@marchen-spec/core'
 
 /**
  * 注册 init 命令
  *
- * 初始化 MarchenSpec 目录结构，创建 openspec/ 目录及默认配置
+ * 初始化 MarchenSpec 目录结构，创建 marchenspec/ 目录及默认配置
  *
  * @param program - Commander 程序实例
  */
@@ -17,10 +17,11 @@ export function registerInitCommand(program: Command): void {
     .action(async (options) => {
       p.intro('MarchenSpec CLI')
 
+      const workspace = new Workspace()
+
       // 检查是否已初始化
-      const alreadyExists = await checkIfInitialized()
+      const alreadyExists = await workspace.isInitialized()
       if (alreadyExists && !options.force) {
-        // 目录已存在且未使用 --force，询问用户确认
         const confirm = await p.confirm({
           message: 'MarchenSpec 目录已存在，是否覆盖？',
         })
@@ -32,7 +33,7 @@ export function registerInitCommand(program: Command): void {
       }
 
       // 执行初始化
-      await initializeMarchenSpec()
+      await workspace.initialize()
 
       p.outro('MarchenSpec 初始化成功！')
     })

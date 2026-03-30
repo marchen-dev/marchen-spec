@@ -1,6 +1,6 @@
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
-import { createChange } from '@marchen-spec/core'
+import { ChangeManager, Workspace } from '@marchen-spec/core'
 import { MarchenSpecError } from '@marchen-spec/shared'
 
 /**
@@ -22,7 +22,9 @@ export function registerNewCommand(program: Command): void {
       spinner.start(`正在创建变更 "${name}"...`)
 
       try {
-        await createChange(name)
+        const workspace = new Workspace()
+        const changes = new ChangeManager(workspace)
+        await changes.create(name)
         spinner.stop(`变更 "${name}" 创建成功`)
       } catch (error) {
         spinner.stop('创建失败')

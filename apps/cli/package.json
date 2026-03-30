@@ -23,6 +23,7 @@
   "dependencies": {
     "@clack/prompts": "^0.10.1",
     "@marchen-spec/core": "workspace:*",
+    "@marchen-spec/shared": "workspace:*",
     "commander": "^14.0.0"
   }
 }
