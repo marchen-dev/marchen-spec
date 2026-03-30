@@ -1,6 +1,6 @@
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
-import { Workspace } from '@marchen-spec/core'
+import { createContext } from '../utils/context.js'
 
 /**
  * 注册 init 命令
@@ -17,7 +17,7 @@ export function registerInitCommand(program: Command): void {
     .action(async (options) => {
       p.intro('MarchenSpec CLI')
 
-      const workspace = new Workspace()
+      const { workspace } = createContext()
 
       // 检查是否已初始化
       const alreadyExists = await workspace.isInitialized()

@@ -1,7 +1,7 @@
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
-import { ChangeManager, Workspace } from '@marchen-spec/core'
 import { MarchenSpecError } from '@marchen-spec/shared'
+import { createContext } from '../utils/context.js'
 
 /**
  * 将 ISO 时间字符串转换为相对时间描述
@@ -33,8 +33,7 @@ export function registerListCommand(program: Command): void {
       p.intro('MarchenSpec CLI')
 
       try {
-        const workspace = new Workspace()
-        const changeManager = new ChangeManager(workspace)
+        const { changes: changeManager } = createContext()
         const changes = await changeManager.list()
 
         if (changes.length === 0) {
