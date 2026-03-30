@@ -5,6 +5,8 @@ import {
   ensureDir,
   exists,
   getChangeDirectory,
+  listDir,
+  readYaml,
   writeFile,
   writeYaml,
 } from '@marchen-spec/fs'
@@ -22,6 +24,57 @@ const KEBAB_CASE_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
  */
 export function isValidChangeName(name: string): boolean {
   return KEBAB_CASE_REGEX.test(name)
+}
+
+/**
+ * 列出所有 open 状态的变更
+ *
+ * 扫描 marchenspec/changes/ 目录，读取各变更的元数据，返回按创建时间降序排列的列表。
+ * 会自动过滤 archive 目录，跳过缺失 .metadata.yaml 的目录。
+ *
+ * @returns 变更元数据数组，按 createdAt 降序排列
+ * @throws {MarchenSpecError} 未初始化时抛出
+ */
+export async function listChanges(): Promise<ChangeMetadata[]> {
+  // 校验初始化状态
+  const initialized = await checkIfInitialized()
+  if (!initialized) {
+    throw new MarchenSpecError('MarchenSpec 尚未初始化，请先执行 marchen init')
+  }
+
+  const changeDir = getChangeDirectory()
+  const entries = await listDir(changeDir)
+
+  // 过滤掉 archive 目录
+  const changeNames = entries.filter(name => name !== 'archive')
+
+  const changes: ChangeMetadata[] = []
+
+  // 读取每个变更的元数据
+  for (const name of changeNames) {
+    const metadataPath = join(changeDir, name, METADATA_FILE_NAME)
+
+    // 检查元数据文件是否存在
+    if (!(await exists(metadataPath))) {
+      // 跳过缺失元数据的目录（警告由 CLI 层处理）
+      continue
+    }
+
+    try {
+      const metadata = await readYaml<ChangeMetadata>(metadataPath)
+      changes.push(metadata)
+    } catch {
+      // 元数据解析失败，跳过该目录
+      continue
+    }
+  }
+
+  // 按创建时间降序排列（最新的在前）
+  changes.sort((a, b) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+
+  return changes
 }
 
 /**

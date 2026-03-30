@@ -1,7 +1,7 @@
 import * as fs from '@marchen-spec/fs'
 import { MarchenSpecError } from '@marchen-spec/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createChange, isValidChangeName } from '../src/index.js'
+import { createChange, isValidChangeName, listChanges } from '../src/index.js'
 
 // Mock fs 层，避免真实文件操作
 vi.mock('@marchen-spec/fs', async (importOriginal) => {
@@ -12,6 +12,8 @@ vi.mock('@marchen-spec/fs', async (importOriginal) => {
     writeFile: vi.fn().mockResolvedValue(undefined),
     writeYaml: vi.fn().mockResolvedValue(undefined),
     exists: vi.fn().mockResolvedValue(false),
+    listDir: vi.fn().mockResolvedValue([]),
+    readYaml: vi.fn().mockResolvedValue({}),
   }
 })
 
@@ -104,5 +106,95 @@ describe('createChange 创建变更', () => {
       expect.stringContaining('tasks.md'),
       expect.any(String),
     )
+  })
+})
+
+describe('listChanges 列出变更', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('未初始化时应该抛出错误', async () => {
+    vi.mocked(fs.exists).mockResolvedValue(false)
+
+    await expect(listChanges()).rejects.toThrow(MarchenSpecError)
+    await expect(listChanges()).rejects.toThrow('尚未初始化')
+  })
+
+  it('无变更时返回空数组', async () => {
+    // checkIfInitialized → true
+    vi.mocked(fs.exists).mockResolvedValueOnce(true)
+    // listDir → 空目录
+    vi.mocked(fs.listDir).mockResolvedValueOnce([])
+
+    const result = await listChanges()
+    expect(result).toEqual([])
+  })
+
+  it('正常列出变更并按创建时间降序排列', async () => {
+    // checkIfInitialized → true
+    vi.mocked(fs.exists).mockResolvedValueOnce(true)
+    // listDir → 两个变更目录
+    vi.mocked(fs.listDir).mockResolvedValueOnce(['old-change', 'new-change'])
+    // 两个目录的 .metadata.yaml 都存在
+    vi.mocked(fs.exists)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+    // readYaml → 元数据
+    vi.mocked(fs.readYaml)
+      .mockResolvedValueOnce({
+        name: 'old-change',
+        schema: 'spec-driven',
+        createdAt: '2026-03-01T00:00:00.000Z',
+        status: 'open',
+      })
+      .mockResolvedValueOnce({
+        name: 'new-change',
+        schema: 'spec-driven',
+        createdAt: '2026-03-29T00:00:00.000Z',
+        status: 'open',
+      })
+
+    const result = await listChanges()
+    expect(result).toHaveLength(2)
+    // 最新的在前
+    expect(result[0]!.name).toBe('new-change')
+    expect(result[1]!.name).toBe('old-change')
+  })
+
+  it('应过滤掉 archive 目录', async () => {
+    vi.mocked(fs.exists).mockResolvedValueOnce(true)
+    vi.mocked(fs.listDir).mockResolvedValueOnce(['my-change', 'archive'])
+    // 只有 my-change 的元数据被检查
+    vi.mocked(fs.exists).mockResolvedValueOnce(true)
+    vi.mocked(fs.readYaml).mockResolvedValueOnce({
+      name: 'my-change',
+      schema: 'spec-driven',
+      createdAt: '2026-03-29T00:00:00.000Z',
+      status: 'open',
+    })
+
+    const result = await listChanges()
+    expect(result).toHaveLength(1)
+    expect(result[0]!.name).toBe('my-change')
+  })
+
+  it('应跳过缺失元数据文件的目录', async () => {
+    vi.mocked(fs.exists).mockResolvedValueOnce(true)
+    vi.mocked(fs.listDir).mockResolvedValueOnce(['valid-change', 'broken-change'])
+    // valid-change 元数据存在，broken-change 不存在
+    vi.mocked(fs.exists)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false)
+    vi.mocked(fs.readYaml).mockResolvedValueOnce({
+      name: 'valid-change',
+      schema: 'spec-driven',
+      createdAt: '2026-03-29T00:00:00.000Z',
+      status: 'open',
+    })
+
+    const result = await listChanges()
+    expect(result).toHaveLength(1)
+    expect(result[0]!.name).toBe('valid-change')
   })
 })

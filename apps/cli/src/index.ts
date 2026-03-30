@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
 import { registerInitCommand } from './commands/init.js'
+import { registerListCommand } from './commands/list.js'
 import { registerNewCommand } from './commands/new.js'
 
 export function buildCliProgram(): Command {
@@ -12,6 +13,7 @@ export function buildCliProgram(): Command {
     .version('0.1.0')
 
   registerInitCommand(program)
+  registerListCommand(program)
   registerNewCommand(program)
 
   return program

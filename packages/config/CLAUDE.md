@@ -36,6 +36,11 @@ pnpm typecheck
 - `MarchenSpecConfig` - 配置接口 `{ specDirectory: string }`
 - `defaultConfig` - 默认配置 `{ specDirectory: 'marchenspec' }`
 - `defineMarchenSpecConfig(partial)` - 配置定义函数，合并用户配置与默认值
+- `DEFAULT_SCHEMA` - 默认模式定义（spec-driven）
+- `ARTIFACT_TEMPLATES` - 制品模板映射（proposal, design, tasks）
+- `DESIGN_TEMPLATE` - 设计文档模板
+- `PROPOSAL_TEMPLATE` - 提案文档模板
+- `TASKS_TEMPLATE` - 任务清单模板
 
 ## 代码规范
 

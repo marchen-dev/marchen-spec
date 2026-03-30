@@ -7,8 +7,13 @@
 **核心导出**:
 - `SPEC_DIRECTORY_NAME = 'marchenspec'` - 规范目录名常量
 - `CHANGE_DIRECTORY_NAME = 'changes'` - 变更目录名常量
+- `METADATA_FILE_NAME = 'metadata.yaml'` - 元数据文件名常量
 - `MarchenSpecError` - 自定义错误类
-- `PackageBoundary` - 包边界接口 `{ name: string, dependsOn: string[] }`
+- `PackageBoundary` - 包边界接口 `{ name: string, path: string, dependencies: string[] }`
+- `ChangeMetadata` - 变更元数据接口
+- `ArtifactDefinition` - 制品定义接口
+- `SchemaDefinition` - 模式定义接口
+- `ChangeStatus` - 变更状态类型
 
 ## 架构原则
 

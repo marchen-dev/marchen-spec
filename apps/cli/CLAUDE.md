@@ -43,7 +43,8 @@ src/
 ├── index.ts              # CLI 入口，注册所有命令
 ├── commands/             # 命令定义目录
 │   ├── info.ts          # info 命令实现
-│   └── init.ts          # init 命令实现
+│   ├── init.ts          # init 命令实现
+│   └── new.ts           # new 命令实现
 └── ui/                  # UI 工具函数
     └── log.ts           # 日志输出工具
 ```
@@ -54,16 +55,26 @@ src/
 显示当前 workspace 的基础结构状态。
 
 ```bash
-marchenspec info
+marchen info
 ```
 
 ### init 命令
 初始化 MarchenSpec 目录结构。
 
 ```bash
-marchenspec init          # 交互式确认
-marchenspec init --force  # 跳过确认
+marchen init          # 交互式确认
+marchen init --force  # 跳过确认
 ```
+
+### new 命令
+创建新的变更（change）。
+
+```bash
+marchen new <change-name>  # 创建指定名称的变更
+marchen new                # 交互式输入变更名称
+```
+
+变更名称必须符合 kebab-case 格式（小写字母、数字、连字符）。
 
 ## 添加新命令
 
@@ -106,11 +117,13 @@ export function buildCliProgram(): Command {
   const program = new Command()
 
   program
-    .name('marchenspec')
+    .name('marchen')
     .description('OpenSpec-like spec workflow CLI')
     .version('0.1.0')
 
   registerInfoCommand(program)
+  registerInitCommand(program)
+  registerNewCommand(program)
   registerExampleCommand(program)  // 添加新命令
 
   return program

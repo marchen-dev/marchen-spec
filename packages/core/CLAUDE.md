@@ -46,6 +46,10 @@ pnpm typecheck
 - `checkIfInitialized()` - 检查是否已初始化 MarchenSpec
 - `initializeMarchenSpec()` - 初始化目录结构（marchenspec/specs/, marchenspec/changes/, marchenspec/changes/archive/）和配置文件
 
+**变更管理**:
+- `createChange(name)` - 创建新的变更目录和元数据文件
+- `isValidChangeName(name)` - 验证变更名称是否符合 kebab-case 规范
+
 **返回类型**:
 - `FoundationStatus` - `{ root, specDirectory, changeDirectory, packageBoundaries }`
 
