@@ -6,3 +6,4 @@ coverage
 *.tsbuildinfo
 repomix-output.xml
 marchenspec
+.worktrees

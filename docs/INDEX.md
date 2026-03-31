@@ -6,6 +6,7 @@
 
 - [路线图](./roadmap.md) - 功能规划与进展
 - [外部参考](./references/) - 参考文档
+- [Specs 架构决策](./references/specs-architecture-decision.md) - 为什么去掉 main specs
 
 ## 架构与开发
 
