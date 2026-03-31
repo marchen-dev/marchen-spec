@@ -1,0 +1,22 @@
+OpenSpec 功能参考（v1.0）
+
+核心工作流：
+propose → design → specs → tasks → implement → verify → archive
+
+命令清单：
+- opsx:propose - 创建完整提案（一步生成所有 artifacts）
+- opsx:new - 创建新变更
+- opsx:continue - 继续变更（创建下一个 artifact）
+- opsx:ff - 快进生成所有 artifact
+- opsx:apply - 执行任务
+- opsx:verify - 验证实现
+- opsx:sync - 同步 delta specs 到 main specs
+- opsx:archive - 归档变更
+- opsx:bulk-archive - 批量归档
+- opsx:onboard - 引导式入门
+- opsx:explore - 探索模式
+
+MarchenSpec 对标进度：
+✅ new, apply, archive, list
+🚧 verify
+📋 explore, continue, sync, ff, bulk-archive, onboard, propose
