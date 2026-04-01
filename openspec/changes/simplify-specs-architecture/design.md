@@ -59,15 +59,3 @@
 **权衡: 简单性 vs 功能性**
 - 选择简单性，适合目标用户（小团队）
 - 如果项目变大，可以重新引入 main specs
-
-## Migration Plan
-
-1. 删除现有的 `openspec/specs/` 目录
-2. 修改 `packages/core/src/workspace.ts`
-3. 更新 CLAUDE.md 文档
-4. 更新测试（如果有相关测试）
-5. 验证 init 命令不再创建 specs 目录
-
-**回滚策略:**
-- Git revert 即可恢复
-- 不影响已有的 archive 数据
