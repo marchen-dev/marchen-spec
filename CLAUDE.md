@@ -2,7 +2,7 @@
 
 MarchenSpec 是一个规范驱动工作流 CLI 工具（类似 OpenSpec），使用 pnpm + Turborepo 构建的 monorepo。
 
-**CLI 命令**: `marchen`（已实现 init, new, list 命令）
+**CLI 命令**: `marchen`（已实现 init, new, list, archive 命令）
 
 ## 架构
 
@@ -59,8 +59,7 @@ pnpm format           # 格式化
 ## 文档与知识
 
 - **`docs/`** - 项目文档（路线图、外部参考）。新对话先读 `docs/INDEX.md`
-- **`openspec/changes/archive/`** - 完整变更历史（proposal + design + tasks + specs）
-- **`openspec/specs/`** - 当前活跃规范
+- **`openspec/changes/archive/`** - 完整变更历史（proposal + design + tasks + specs），是唯一的规范真相来源
 - **`docs/references/`** - 外部参考文档（OpenSpec 功能清单、OpenAI Harness Engineering 实践）
 
 ## Turbo 缓存

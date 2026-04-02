@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
+import { registerArchiveCommand } from './commands/archive.js'
 import { registerInitCommand } from './commands/init.js'
 import { registerListCommand } from './commands/list.js'
 import { registerNewCommand } from './commands/new.js'
@@ -12,6 +13,7 @@ export function buildCliProgram(): Command {
     .description('OpenSpec-like spec workflow CLI')
     .version('0.1.0')
 
+  registerArchiveCommand(program)
   registerInitCommand(program)
   registerListCommand(program)
   registerNewCommand(program)

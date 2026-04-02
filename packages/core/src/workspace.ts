@@ -61,14 +61,12 @@ export class Workspace {
    *
    * 创建标准目录结构和默认配置文件：
    * - marchenspec/config.yaml
-   * - marchenspec/specs/
    * - marchenspec/changes/
    * - marchenspec/changes/archive/
    */
   async initialize(): Promise<void> {
     // 创建目录结构
     await ensureDir(this.specDir)
-    await ensureDir(join(this.specDir, 'specs'))
     await ensureDir(join(this.specDir, CHANGE_DIRECTORY_NAME))
     await ensureDir(join(this.specDir, CHANGE_DIRECTORY_NAME, 'archive'))
 
@@ -81,7 +79,6 @@ export class Workspace {
     })
 
     // 创建 .gitkeep 占位文件
-    await writeFile(join(this.specDir, 'specs', '.gitkeep'), '')
     await writeFile(join(this.specDir, CHANGE_DIRECTORY_NAME, '.gitkeep'), '')
     await writeFile(
       join(this.specDir, CHANGE_DIRECTORY_NAME, 'archive', '.gitkeep'),

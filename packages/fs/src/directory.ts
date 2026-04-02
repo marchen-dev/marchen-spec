@@ -31,6 +31,24 @@ export async function exists(path: string): Promise<boolean> {
 }
 
 /**
+ * 移动目录到新位置
+ *
+ * @param src - 源目录路径
+ * @param dest - 目标目录路径
+ * @throws {MarchenSpecError} 源目录不存在时抛出
+ */
+export async function moveDir(src: string, dest: string): Promise<void> {
+  try {
+    await nodeFs.rename(src, dest)
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      throw new MarchenSpecError(`目录不存在: ${src}`)
+    }
+    throw error
+  }
+}
+
+/**
  * 列举目录下的直接子条目
  */
 export async function listDir(path: string): Promise<string[]> {

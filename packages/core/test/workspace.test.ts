@@ -51,15 +51,15 @@ describe('workspace', () => {
       const workspace = new Workspace('/test/root')
       await workspace.initialize()
 
-      // 创建 4 个目录
-      expect(fs.ensureDir).toHaveBeenCalledTimes(4)
+      // 创建 3 个目录（specDir, changes, archive）
+      expect(fs.ensureDir).toHaveBeenCalledTimes(3)
       // 写入 config.yaml
       expect(fs.writeYaml).toHaveBeenCalledWith(
         expect.stringContaining('config.yaml'),
         expect.objectContaining({ schema: 'spec-driven' }),
       )
-      // 创建 3 个 .gitkeep 文件
-      expect(fs.writeFile).toHaveBeenCalledTimes(3)
+      // 创建 2 个 .gitkeep 文件（changes, archive）
+      expect(fs.writeFile).toHaveBeenCalledTimes(2)
     })
   })
 })
