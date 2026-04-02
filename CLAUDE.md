@@ -24,6 +24,10 @@ MarchenSpec 是一个规范驱动工作流 CLI 工具（类似 OpenSpec），使
 - **packages/config**: 配置加载、Schema 定义、Artifact 模板管理
 - **packages/shared**: 共享类型、常量、错误定义
 
+## 语言
+
+- 对话、回复、文档注释统一使用中文
+
 ## 关键约束
 
 1. **单向依赖**: 只能从上层依赖下层，禁止循环依赖
@@ -62,6 +66,6 @@ pnpm format           # 格式化
 - **`openspec/changes/archive/`** - 完整变更历史（proposal + design + tasks + specs），是唯一的规范真相来源
 - **`docs/references/`** - 外部参考文档（OpenSpec 功能清单、OpenAI Harness Engineering 实践）
 
-## Turbo 缓存
-
-清除: `rm -rf .turbo`
+- **`openspec/changes/archive/`** - 完整变更历史（proposal + design + tasks + specs）
+- **`openspec/specs/`** - 当前活跃规范
+- **`docs/references/`** - 外部参考文档（OpenSpec 功能清单、OpenAI Harness Engineering 实践）
