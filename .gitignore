@@ -7,3 +7,4 @@ coverage
 repomix-output.xml
 marchenspec
 .worktrees
+.claude/worktrees
