@@ -1,5 +1,5 @@
 import * as fs from '@marchen-spec/fs'
-import { MarchenSpecError } from '@marchen-spec/shared'
+import { StateError, ValidationError } from '@marchen-spec/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChangeManager, Workspace } from '../src/index.js'
 
@@ -52,7 +52,7 @@ describe('changeManager.create 创建变更', () => {
   it('未初始化时应该抛出错误', async () => {
     vi.mocked(fs.exists).mockResolvedValue(false)
 
-    await expect(manager.create('my-feature')).rejects.toThrow(MarchenSpecError)
+    await expect(manager.create('my-feature')).rejects.toThrow(StateError)
     await expect(manager.create('my-feature')).rejects.toThrow('尚未初始化')
   })
 
@@ -60,7 +60,7 @@ describe('changeManager.create 创建变更', () => {
     // isInitialized → true
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
 
-    await expect(manager.create('Bad_Name')).rejects.toThrow(MarchenSpecError)
+    await expect(manager.create('Bad_Name')).rejects.toThrow(ValidationError)
 
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
     await expect(manager.create('Bad_Name')).rejects.toThrow('不合法')
@@ -70,7 +70,7 @@ describe('changeManager.create 创建变更', () => {
     // isInitialized → true，变更目录 exists → true
     vi.mocked(fs.exists).mockResolvedValue(true)
 
-    await expect(manager.create('my-feature')).rejects.toThrow(MarchenSpecError)
+    await expect(manager.create('my-feature')).rejects.toThrow(ValidationError)
     await expect(manager.create('my-feature')).rejects.toThrow('已存在')
   })
 
@@ -126,7 +126,7 @@ describe('changeManager.list 列出变更', () => {
   it('未初始化时应该抛出错误', async () => {
     vi.mocked(fs.exists).mockResolvedValue(false)
 
-    await expect(manager.list()).rejects.toThrow(MarchenSpecError)
+    await expect(manager.list()).rejects.toThrow(StateError)
     await expect(manager.list()).rejects.toThrow('尚未初始化')
   })
 

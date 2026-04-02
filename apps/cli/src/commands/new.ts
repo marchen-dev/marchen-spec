@@ -1,7 +1,7 @@
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
-import { MarchenSpecError } from '@marchen-spec/shared'
 import { createContext } from '../utils/context.js'
+import { handleError } from '../utils/error.js'
 
 /**
  * 注册 new 命令
@@ -27,14 +27,7 @@ export function registerNewCommand(program: Command): void {
         spinner.stop(`变更 "${name}" 创建成功`)
       } catch (error) {
         spinner.stop('创建失败')
-
-        if (error instanceof MarchenSpecError) {
-          p.log.error(error.message)
-        } else {
-          p.log.error(`未知错误: ${error}`)
-        }
-
-        process.exit(1)
+        handleError(error)
       }
 
       p.outro(`运行 marchen list 查看所有变更`)
