@@ -1,7 +1,6 @@
 {
   "name": "@marchen-spec/cli",
   "version": "0.1.0",
-  "private": true,
   "description": "MarchenSpec CLI application",
   "type": "module",
   "bin": {
@@ -9,6 +8,9 @@
   },
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist"
   ],
@@ -22,8 +24,11 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.10.1",
+    "commander": "^14.0.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
     "@marchen-spec/core": "workspace:*",
-    "@marchen-spec/shared": "workspace:*",
-    "commander": "^14.0.0"
+    "@marchen-spec/shared": "workspace:*"
   }
 }
