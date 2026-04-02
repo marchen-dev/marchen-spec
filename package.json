@@ -18,13 +18,15 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
-    "release:version": "bumpp --all"
+    "release:version": "bumpp --all --execute 'pnpm build && pnpm test'",
+    "release:changelog": "changelogithub"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.13.2",
     "@suemor/prettier-config": "^0.0.3",
     "@types/node": "^24.0.0",
     "bumpp": "^10.2.3",
+    "changelogithub": "^14.0.0",
     "eslint": "^9.24.0",
     "prettier": "^3.5.3",
     "tsdown": "^0.21.4",
