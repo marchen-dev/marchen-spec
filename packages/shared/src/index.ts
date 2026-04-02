@@ -1,5 +1,5 @@
 export { ARCHIVE_DIRECTORY_NAME, CHANGE_DIRECTORY_NAME, METADATA_FILE_NAME, SPEC_DIRECTORY_NAME } from './constants.js'
-export { MarchenSpecError } from './errors.js'
+export { FileSystemError, MarchenSpecError, StateError, ValidationError } from './errors.js'
 export type {
   ArtifactDefinition,
   ChangeMetadata,

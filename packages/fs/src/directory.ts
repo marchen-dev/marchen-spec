@@ -1,5 +1,5 @@
 import { promises as nodeFs } from 'node:fs'
-import { MarchenSpecError } from '@marchen-spec/shared'
+import { FileSystemError } from '@marchen-spec/shared'
 
 // ============================================================
 // 目录操作
@@ -42,7 +42,7 @@ export async function moveDir(src: string, dest: string): Promise<void> {
     await nodeFs.rename(src, dest)
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      throw new MarchenSpecError(`目录不存在: ${src}`)
+      throw new FileSystemError('目录不存在', src)
     }
     throw error
   }
@@ -56,7 +56,7 @@ export async function listDir(path: string): Promise<string[]> {
     return await nodeFs.readdir(path)
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      throw new MarchenSpecError(`目录不存在: ${path}`)
+      throw new FileSystemError('目录不存在', path)
     }
     throw error
   }

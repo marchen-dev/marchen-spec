@@ -11,7 +11,7 @@ import {
   writeFile,
   writeYaml,
 } from '@marchen-spec/fs'
-import { MarchenSpecError, METADATA_FILE_NAME } from '@marchen-spec/shared'
+import { METADATA_FILE_NAME, StateError, ValidationError } from '@marchen-spec/shared'
 
 /** kebab-case 校验正则 */
 const KEBAB_CASE_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -53,7 +53,7 @@ export class ChangeManager {
 
     // 校验名称格式
     if (!ChangeManager.isValidName(name)) {
-      throw new MarchenSpecError(
+      throw new ValidationError(
         `变更名称 "${name}" 不合法，请使用 kebab-case 格式（如 add-dark-mode）`,
       )
     }
@@ -61,7 +61,7 @@ export class ChangeManager {
     // 校验是否重名
     const changeDir = join(this.workspace.changeDir, name)
     if (await exists(changeDir)) {
-      throw new MarchenSpecError(`变更 "${name}" 已存在`)
+      throw new ValidationError(`变更 "${name}" 已存在`)
     }
 
     // 创建变更根目录和 specs 子目录
@@ -100,7 +100,7 @@ export class ChangeManager {
 
     const changeDir = join(this.workspace.changeDir, name)
     if (!(await exists(changeDir))) {
-      throw new MarchenSpecError(`变更 "${name}" 不存在`)
+      throw new ValidationError(`变更 "${name}" 不存在`)
     }
 
     // 更新元数据
@@ -172,8 +172,9 @@ export class ChangeManager {
   private async ensureInitialized(): Promise<void> {
     const initialized = await this.workspace.isInitialized()
     if (!initialized) {
-      throw new MarchenSpecError(
-        'MarchenSpec 尚未初始化，请先执行 marchen init',
+      throw new StateError(
+        'MarchenSpec 尚未初始化',
+        '运行 marchen init 初始化',
       )
     }
   }

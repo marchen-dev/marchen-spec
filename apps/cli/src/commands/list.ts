@@ -1,7 +1,7 @@
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
-import { MarchenSpecError } from '@marchen-spec/shared'
 import { createContext } from '../utils/context.js'
+import { handleError } from '../utils/error.js'
 
 /**
  * 将 ISO 时间字符串转换为相对时间描述
@@ -61,13 +61,7 @@ export function registerListCommand(program: Command): void {
 
         p.outro('运行 marchen status <name> 查看变更详情')
       } catch (error) {
-        if (error instanceof MarchenSpecError) {
-          p.log.error(error.message)
-        } else {
-          p.log.error(`未知错误: ${error}`)
-        }
-
-        process.exit(1)
+        handleError(error)
       }
     })
 }
