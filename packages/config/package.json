@@ -1,6 +1,6 @@
 {
   "name": "@marchen-spec/config",
-  "version": "0.1.0",
+  "version": "0.2.2",
   "private": true,
   "description": "Configuration utilities for MarchenSpec",
   "type": "module",

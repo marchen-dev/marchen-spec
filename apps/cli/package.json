@@ -1,6 +1,6 @@
 {
   "name": "@marchen-spec/cli",
-  "version": "0.1.0",
+  "version": "0.2.2",
   "description": "MarchenSpec CLI application",
   "type": "module",
   "bin": {
