@@ -116,8 +116,7 @@ export class ChangeManager {
     // 移动到 archive 目录
     const datePrefix = now.toISOString().slice(0, 10)
     const archiveDir = join(
-      this.workspace.changeDir,
-      'archive',
+      this.workspace.archiveDir,
       `${datePrefix}-${name}`,
     )
     await moveDir(changeDir, archiveDir)
@@ -127,7 +126,7 @@ export class ChangeManager {
    * 列出所有 open 状态的变更
    *
    * 扫描 marchenspec/changes/ 目录，读取各变更的元数据，
-   * 返回按创建时间降序排列的列表。自动过滤 archive 目录，跳过缺失元数据的目录。
+   * 返回按创建时间降序排列的列表。跳过缺失元数据的目录。
    *
    * @returns 变更元数据数组，按 createdAt 降序排列
    * @throws {MarchenSpecError} 未初始化时抛出
@@ -137,13 +136,10 @@ export class ChangeManager {
 
     const entries = await listDir(this.workspace.changeDir)
 
-    // 过滤掉 archive 目录
-    const changeNames = entries.filter((name) => name !== 'archive')
-
     const changes: ChangeMetadata[] = []
 
     // 读取每个变更的元数据
-    for (const name of changeNames) {
+    for (const name of entries) {
       const metadataPath = join(
         this.workspace.changeDir,
         name,

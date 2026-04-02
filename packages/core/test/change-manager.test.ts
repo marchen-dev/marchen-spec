@@ -164,22 +164,6 @@ describe('changeManager.list 列出变更', () => {
     expect(result[1]!.name).toBe('old-change')
   })
 
-  it('应过滤掉 archive 目录', async () => {
-    vi.mocked(fs.exists).mockResolvedValueOnce(true)
-    vi.mocked(fs.listDir).mockResolvedValueOnce(['my-change', 'archive'])
-    vi.mocked(fs.exists).mockResolvedValueOnce(true)
-    vi.mocked(fs.readYaml).mockResolvedValueOnce({
-      name: 'my-change',
-      schema: 'spec-driven',
-      createdAt: '2026-03-29T00:00:00.000Z',
-      status: 'open',
-    })
-
-    const result = await manager.list()
-    expect(result).toHaveLength(1)
-    expect(result[0]!.name).toBe('my-change')
-  })
-
   it('应跳过缺失元数据文件的目录', async () => {
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
     vi.mocked(fs.listDir).mockResolvedValueOnce(['valid-change', 'broken-change'])

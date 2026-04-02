@@ -1,6 +1,7 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+  ARCHIVE_DIRECTORY_NAME,
   CHANGE_DIRECTORY_NAME,
   SPEC_DIRECTORY_NAME,
 } from '@marchen-spec/shared'
@@ -28,6 +29,13 @@ export function getSpecDirectory(root = process.cwd()): string {
  */
 export function getChangeDirectory(root = process.cwd()): string {
   return resolve(getSpecDirectory(root), CHANGE_DIRECTORY_NAME)
+}
+
+/**
+ * 获取归档目录路径
+ */
+export function getArchiveDirectory(root = process.cwd()): string {
+  return resolve(getSpecDirectory(root), ARCHIVE_DIRECTORY_NAME)
 }
 
 /**
