@@ -5,45 +5,45 @@
  */
 
 /** proposal.md 模板 */
-export const PROPOSAL_TEMPLATE = `## Why
+export const PROPOSAL_TEMPLATE = `## 动机
 
 <!-- 说明这个变更的动机。解决什么问题？为什么现在做？ -->
 
-## What Changes
+## 变更内容
 
 <!-- 描述具体变更内容。列出新增的能力、修改或移除的部分。 -->
 
-## Capabilities
+## 能力
 
-### New Capabilities
+### 新增能力
 <!-- 新增的能力。使用 kebab-case 命名，每个会生成 specs/<name>/spec.md -->
 
-### Modified Capabilities
+### 修改能力
 <!-- 需要修改的现有能力。仅当规范级别的行为发生变化时才列出。 -->
 
-## Impact
+## 影响范围
 
 <!-- 受影响的代码、API、依赖或系统 -->
 `
 
 /** design.md 模板 */
-export const DESIGN_TEMPLATE = `## Context
+export const DESIGN_TEMPLATE = `## 背景
 
 <!-- 背景和当前状态 -->
 
-## Goals / Non-Goals
+## 目标与非目标
 
-**Goals:**
+**目标：**
 <!-- 这个设计要达成什么 -->
 
-**Non-Goals:**
+**非目标：**
 <!-- 明确排除在范围之外的内容 -->
 
-## Decisions
+## 决策
 
 <!-- 关键技术决策和理由 -->
 
-## Risks / Trade-offs
+## 风险与权衡
 
 <!-- 已知风险和权衡 -->
 `

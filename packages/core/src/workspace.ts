@@ -3,13 +3,13 @@ import { join } from 'node:path'
 import {
   ensureDir,
   exists,
+  getArchiveDirectory,
   getChangeDirectory,
   getSpecDirectory,
   resolveWorkspaceRoot,
   writeFile,
   writeYaml,
 } from '@marchen-spec/fs'
-import { CHANGE_DIRECTORY_NAME } from '@marchen-spec/shared'
 
 /**
  * 工作区上下文
@@ -26,6 +26,9 @@ export class Workspace {
 
   /** 变更目录路径（marchenspec/changes/） */
   readonly changeDir: string
+
+  /** 归档目录路径（marchenspec/archive/） */
+  readonly archiveDir: string
 
   /** 包边界信息 */
   readonly packageBoundaries: readonly PackageBoundary[] = [
@@ -45,6 +48,7 @@ export class Workspace {
     this.root = resolveWorkspaceRoot(root)
     this.specDir = getSpecDirectory(this.root)
     this.changeDir = getChangeDirectory(this.root)
+    this.archiveDir = getArchiveDirectory(this.root)
   }
 
   /**
@@ -62,13 +66,13 @@ export class Workspace {
    * 创建标准目录结构和默认配置文件：
    * - marchenspec/config.yaml
    * - marchenspec/changes/
-   * - marchenspec/changes/archive/
+   * - marchenspec/archive/
    */
   async initialize(): Promise<void> {
     // 创建目录结构
     await ensureDir(this.specDir)
-    await ensureDir(join(this.specDir, CHANGE_DIRECTORY_NAME))
-    await ensureDir(join(this.specDir, CHANGE_DIRECTORY_NAME, 'archive'))
+    await ensureDir(this.changeDir)
+    await ensureDir(this.archiveDir)
 
     // 写入默认配置
     const configPath = join(this.specDir, 'config.yaml')
@@ -79,10 +83,7 @@ export class Workspace {
     })
 
     // 创建 .gitkeep 占位文件
-    await writeFile(join(this.specDir, CHANGE_DIRECTORY_NAME, '.gitkeep'), '')
-    await writeFile(
-      join(this.specDir, CHANGE_DIRECTORY_NAME, 'archive', '.gitkeep'),
-      '',
-    )
+    await writeFile(join(this.changeDir, '.gitkeep'), '')
+    await writeFile(join(this.archiveDir, '.gitkeep'), '')
   }
 }
