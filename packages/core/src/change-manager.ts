@@ -6,6 +6,7 @@ import {
   ensureDir,
   exists,
   listDir,
+  moveDir,
   readYaml,
   writeFile,
   writeYaml,
@@ -83,6 +84,43 @@ export class ChangeManager {
         await writeFile(join(changeDir, artifact.generates), template)
       }
     }
+  }
+
+  /**
+   * 归档一个已完成的变更
+   *
+   * 将变更目录从 marchenspec/changes/ 移动到 marchenspec/changes/archive/，
+   * 目标目录名格式为 YYYY-MM-DD-<name>。同时更新元数据的 status 和 archivedAt。
+   *
+   * @param name - 变更名称
+   * @throws {MarchenSpecError} 未初始化或变更不存在时抛出
+   */
+  async archive(name: string): Promise<void> {
+    await this.ensureInitialized()
+
+    const changeDir = join(this.workspace.changeDir, name)
+    if (!(await exists(changeDir))) {
+      throw new MarchenSpecError(`变更 "${name}" 不存在`)
+    }
+
+    // 更新元数据
+    const metadataPath = join(changeDir, METADATA_FILE_NAME)
+    const metadata = await readYaml<ChangeMetadata>(metadataPath)
+    const now = new Date()
+    await writeYaml(metadataPath, {
+      ...metadata,
+      status: 'archived' as const,
+      archivedAt: now.toISOString(),
+    })
+
+    // 移动到 archive 目录
+    const datePrefix = now.toISOString().slice(0, 10)
+    const archiveDir = join(
+      this.workspace.changeDir,
+      'archive',
+      `${datePrefix}-${name}`,
+    )
+    await moveDir(changeDir, archiveDir)
   }
 
   /**
