@@ -334,8 +334,8 @@ export class ChangeManager {
    * specs 是目录类型 artifact，状态判断规则：
    * - 目录不存在 → missing
    * - 目录存在但无子目录 → no-content
-   * - 有子目录但所有 spec.md 都是空的 → no-content（返回 capabilities 列表）
-   * - 至少一个 spec.md 有实质内容 → filled
+   * - 有子目录但存在未填充的 spec.md → no-content（返回 capabilities 列表）
+   * - 所有子目录的 spec.md 都有实质内容 → filled
    *
    * @param specsPath - specs 目录绝对路径
    * @returns 状态和 capabilities（子目录名列表）
@@ -353,18 +353,22 @@ export class ChangeManager {
       return { status: 'no-content', capabilities: [] }
     }
 
-    // 检查是否有至少一个 filled 的 spec 文件
+    // 检查所有 spec 文件的内容状态
+    // 只有全部 spec.md 都是 filled 才算 filled，否则算 no-content
+    let allFilled = true
     for (const entry of entries) {
       const specFile = join(specsPath, entry, 'spec.md')
-      if (await exists(specFile)) {
-        const status = await this.detectContentStatus(specFile)
-        if (status === 'filled') {
-          return { status: 'filled', capabilities: entries }
-        }
+      if (!(await exists(specFile))) {
+        allFilled = false
+        continue
+      }
+      const status = await this.detectContentStatus(specFile)
+      if (status !== 'filled') {
+        allFilled = false
       }
     }
 
-    return { status: 'no-content', capabilities: entries }
+    return { status: allFilled ? 'filled' : 'no-content', capabilities: entries }
   }
 
   /**
