@@ -1,7 +1,7 @@
 {
   "name": "marchen-spec",
   "version": "0.1.1",
-  "description": "MarchenSpec CLI application",
+  "description": "Spec-driven development CLI",
   "type": "module",
   "bin": {
     "marchen": "./dist/index.mjs"

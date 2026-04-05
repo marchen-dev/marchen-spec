@@ -2,7 +2,7 @@
   "name": "marchenspec",
   "version": "0.1.1",
   "private": true,
-  "description": "OpenSpec-like spec workflow CLI",
+  "description": "Spec-driven development CLI",
   "type": "module",
   "packageManager": "pnpm@10.17.1",
   "engines": {

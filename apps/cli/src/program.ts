@@ -14,7 +14,7 @@ export function buildCliProgram(): Command {
 
   program
     .name('marchen')
-    .description('OpenSpec-like spec workflow CLI')
+    .description('Spec-driven development CLI')
     .version('0.1.0')
 
   registerArchiveCommand(program)
