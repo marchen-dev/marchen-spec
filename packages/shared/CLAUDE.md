@@ -19,10 +19,14 @@ src/
 **常量** (`constants.ts`):
 - `SPEC_DIRECTORY_NAME = 'marchenspec'` - 规范目录名
 - `CHANGE_DIRECTORY_NAME = 'changes'` - 变更目录名
+- `ARCHIVE_DIRECTORY_NAME = 'archive'` - 归档目录名
 - `METADATA_FILE_NAME = '.metadata.yaml'` - 元数据文件名
 
 **错误** (`errors.ts`):
-- `MarchenSpecError` - 自定义业务错误类
+- `MarchenSpecError` - 统一错误基类，CLI 层可用 `instanceof` 兜底捕获
+- `ValidationError` - 用户输入校验错误（名称不合法、变更已存在等）
+- `StateError` - 状态前置条件错误（附带 `hint?` 操作建议）
+- `FileSystemError` - 文件系统操作错误（附带 `path` 和 `cause?`）
 
 **类型** (`types.ts`):
 - `PackageBoundary` - 包边界接口 `{ name, dependsOn }`

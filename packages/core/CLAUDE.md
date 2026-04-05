@@ -42,6 +42,7 @@ const workspace = new Workspace(root)  // 指定路径
 workspace.root          // 工作区根目录
 workspace.specDir       // marchenspec/ 路径
 workspace.changeDir     // marchenspec/changes/ 路径
+workspace.archiveDir    // marchenspec/archive/ 路径
 workspace.packageBoundaries  // PackageBoundary[]
 
 await workspace.isInitialized()  // 检查是否已初始化
@@ -56,6 +57,7 @@ await workspace.initialize()     // 执行初始化
 const changes = new ChangeManager(workspace)
 
 await changes.create('my-feature')  // 创建变更
+await changes.archive('my-feature') // 归档变更
 await changes.list()                // 列出所有 open 变更
 
 ChangeManager.isValidName('my-feature')  // 静态方法，校验名称

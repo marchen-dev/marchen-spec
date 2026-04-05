@@ -18,11 +18,16 @@ CLI 应用层，负责命令行界面、用户交互和参数解析。使用 `co
 
 ```
 src/
-├── index.ts              # CLI 入口，注册所有命令
-└── commands/
-    ├── init.ts           # init 命令
-    ├── new.ts            # new 命令
-    └── list.ts           # list 命令
+├── index.ts              # CLI 入口
+├── program.ts            # 构建 Commander 程序，注册所有命令
+├── commands/
+│   ├── init.ts           # init 命令
+│   ├── new.ts            # new 命令
+│   ├── list.ts           # list 命令
+│   └── archive.ts        # archive 命令
+└── utils/
+    ├── context.ts        # createContext() 工具
+    └── error.ts          # handleError() 错误处理
 ```
 
 ## 已实现命令
@@ -41,6 +46,11 @@ marchen new <name>    # 创建变更（kebab-case）
 ### list 命令
 ```bash
 marchen list          # 列出所有 open 变更
+```
+
+### archive 命令
+```bash
+marchen archive <name>  # 归档变更，移动到 archive/ 并更新 metadata
 ```
 
 ## 添加新命令

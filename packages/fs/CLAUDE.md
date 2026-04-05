@@ -31,11 +31,13 @@ src/
 - `resolveWorkspaceRoot(fromPath?)` - 解析 workspace 根目录
 - `getSpecDirectory(root?)` - 获取规范目录路径
 - `getChangeDirectory(root?)` - 获取变更目录路径
+- `getArchiveDirectory(root?)` - 获取归档目录路径
 - `getPackageRoot(importMetaUrl)` - 获取包根目录
 
 **目录操作** (`directory.ts`):
 - `ensureDir(path)` - 递归创建目录（已存在时静默）
 - `exists(path)` - 检查路径是否存在
+- `moveDir(src, dest)` - 移动目录到新位置
 - `listDir(path)` - 列出目录内容
 
 **文件 I/O** (`file.ts`):
