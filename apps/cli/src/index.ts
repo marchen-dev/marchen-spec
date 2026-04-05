@@ -1,28 +1,6 @@
-import { fileURLToPath } from 'node:url'
-import { Command } from 'commander'
-import { registerArchiveCommand } from './commands/archive.js'
-import { registerInitCommand } from './commands/init.js'
-import { registerListCommand } from './commands/list.js'
-import { registerNewCommand } from './commands/new.js'
+import { buildCliProgram } from './program.js'
 
-export function buildCliProgram(): Command {
-  const program = new Command()
+export { buildCliProgram } from './program.js'
 
-  program
-    .name('marchen')
-    .description('OpenSpec-like spec workflow CLI')
-    .version('0.1.0')
-
-  registerArchiveCommand(program)
-  registerInitCommand(program)
-  registerListCommand(program)
-  registerNewCommand(program)
-
-  return program
-}
-
-const entryFile = process.argv[1]
-if (entryFile && fileURLToPath(import.meta.url) === entryFile) {
-  const program = buildCliProgram()
-  program.parse(process.argv)
-}
+const program = buildCliProgram()
+program.parse(process.argv)

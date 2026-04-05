@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildCliProgram } from '../src/index.js'
+import { buildCliProgram } from '../src/program.js'
 
 describe('buildCliProgram', () => {
   it('registers the init command', () => {
