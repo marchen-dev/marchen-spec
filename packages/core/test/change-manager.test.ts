@@ -3,7 +3,7 @@ import { StateError, ValidationError } from '@marchen-spec/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChangeManager, Workspace } from '../src/index.js'
 
-// Mock fs 层，避免真实文件操作
+  // Mock fs 层，避免真实文件操作
 vi.mock('@marchen-spec/fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@marchen-spec/fs')>()
   return {
@@ -14,6 +14,7 @@ vi.mock('@marchen-spec/fs', async (importOriginal) => {
     exists: vi.fn().mockResolvedValue(false),
     listDir: vi.fn().mockResolvedValue([]),
     readYaml: vi.fn().mockResolvedValue({}),
+    readFile: vi.fn().mockResolvedValue(''),
   }
 })
 
@@ -180,5 +181,101 @@ describe('changeManager.list 列出变更', () => {
     const result = await manager.list()
     expect(result).toHaveLength(1)
     expect(result[0]!.name).toBe('valid-change')
+  })
+})
+
+describe('changeManager.verify 验证变更', () => {
+  let workspace: Workspace
+  let manager: ChangeManager
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    workspace = new Workspace('/test/root')
+    manager = new ChangeManager(workspace)
+  })
+
+  it('未初始化时应该抛出错误', async () => {
+    vi.mocked(fs.exists).mockResolvedValue(false)
+
+    await expect(manager.verify('my-feature')).rejects.toThrow(StateError)
+    await expect(manager.verify('my-feature')).rejects.toThrow('尚未初始化')
+  })
+
+  it('变更不存在时应该抛出错误', async () => {
+    vi.mocked(fs.exists)
+      .mockResolvedValueOnce(true) // specDir exists
+      .mockResolvedValueOnce(false) // changeDir not exists
+      .mockResolvedValueOnce(true) // specDir exists (second call)
+      .mockResolvedValueOnce(false) // changeDir not exists (second call)
+
+    await expect(manager.verify('non-existent')).rejects.toThrow(ValidationError)
+    await expect(manager.verify('non-existent')).rejects.toThrow('不存在')
+  })
+
+  it('正常验证完整变更', async () => {
+    vi.mocked(fs.exists)
+      .mockResolvedValueOnce(true) // specDir exists (isInitialized)
+      .mockResolvedValueOnce(true) // changeDir exists
+      // artifact checks (proposal, specs, design, tasks)
+      .mockResolvedValueOnce(true) // proposal.md
+      .mockResolvedValueOnce(true) // specs/
+      .mockResolvedValueOnce(true) // design.md
+      .mockResolvedValueOnce(true) // tasks.md
+      .mockResolvedValueOnce(true) // tasks.md exists (for readFile)
+
+    vi.mocked(fs.listDir).mockResolvedValueOnce(['auth', 'export'])
+    vi.mocked(fs.readFile).mockResolvedValueOnce(
+      '## 1. Setup\n\n- [x] 1.1 Create module\n- [ ] 1.2 Add deps\n\n## 2. Core\n\n- [x] 2.1 Implement logic\n',
+    )
+
+    const result = await manager.verify('my-feature')
+
+    expect(result.name).toBe('my-feature')
+    expect(result.artifacts).toHaveLength(4)
+    expect(result.artifacts[0]).toEqual({ id: 'proposal', exists: true })
+    expect(result.artifacts[1]).toEqual({ id: 'specs', exists: true, capabilities: ['auth', 'export'] })
+    expect(result.artifacts[2]).toEqual({ id: 'design', exists: true })
+    expect(result.artifacts[3]).toEqual({ id: 'tasks', exists: true })
+    expect(result.tasks).toEqual({
+      total: 3,
+      completed: 2,
+      items: [
+        { description: '1.1 Create module', completed: true },
+        { description: '1.2 Add deps', completed: false },
+        { description: '2.1 Implement logic', completed: true },
+      ],
+    })
+  })
+
+  it('tasks.md 不存在时 tasks 为 null', async () => {
+    vi.mocked(fs.exists)
+      .mockResolvedValueOnce(true) // specDir exists
+      .mockResolvedValueOnce(true) // changeDir exists
+      .mockResolvedValueOnce(true) // proposal.md
+      .mockResolvedValueOnce(false) // specs/
+      .mockResolvedValueOnce(false) // design.md
+      .mockResolvedValueOnce(false) // tasks.md
+      .mockResolvedValueOnce(false) // tasks.md (for readFile check)
+
+    const result = await manager.verify('my-feature')
+
+    expect(result.tasks).toBeNull()
+  })
+
+  it('specs/ 为空目录时 capabilities 为空数组', async () => {
+    vi.mocked(fs.exists)
+      .mockResolvedValueOnce(true) // specDir exists
+      .mockResolvedValueOnce(true) // changeDir exists
+      .mockResolvedValueOnce(false) // proposal.md
+      .mockResolvedValueOnce(true) // specs/
+      .mockResolvedValueOnce(false) // design.md
+      .mockResolvedValueOnce(false) // tasks.md
+      .mockResolvedValueOnce(false) // tasks.md (for readFile check)
+
+    vi.mocked(fs.listDir).mockResolvedValueOnce([])
+
+    const result = await manager.verify('my-feature')
+
+    expect(result.artifacts[1]).toEqual({ id: 'specs', exists: true, capabilities: [] })
   })
 })

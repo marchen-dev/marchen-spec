@@ -52,3 +52,45 @@ export interface SchemaDefinition {
   /** 包含的 artifact 定义列表 */
   readonly artifacts: readonly ArtifactDefinition[]
 }
+
+/**
+ * 单个 task 条目
+ *
+ * 对应 tasks.md 中的一个 checkbox 行
+ */
+export interface TaskItem {
+  /** 任务描述文字 */
+  readonly description: string
+  /** 是否已完成 */
+  readonly completed: boolean
+}
+
+/**
+ * 单个 artifact 的存在状态
+ */
+export interface ArtifactStatus {
+  /** artifact 标识符（如 'proposal'、'design'、'tasks'、'specs'） */
+  readonly id: string
+  /** 文件/目录是否存在 */
+  readonly exists: boolean
+  /** specs 类型时，子目录名列表（capability 名称） */
+  readonly capabilities?: readonly string[]
+}
+
+/**
+ * verify 命令的返回结果
+ *
+ * 包含变更的 artifact 完整度和 task 完成情况
+ */
+export interface VerifyResult {
+  /** 变更名称 */
+  readonly name: string
+  /** 各 artifact 的存在状态 */
+  readonly artifacts: readonly ArtifactStatus[]
+  /** task 完成信息，tasks.md 不存在时为 null */
+  readonly tasks: {
+    readonly total: number
+    readonly completed: number
+    readonly items: readonly TaskItem[]
+  } | null
+}
