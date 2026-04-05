@@ -24,7 +24,8 @@ src/
 │   ├── init.ts           # init 命令
 │   ├── new.ts            # new 命令
 │   ├── list.ts           # list 命令
-│   └── archive.ts        # archive 命令
+│   ├── archive.ts        # archive 命令
+│   └── verify.ts         # verify 命令
 └── utils/
     ├── context.ts        # createContext() 工具
     └── error.ts          # handleError() 错误处理
@@ -53,6 +54,12 @@ marchen list          # 列出所有 open 变更
 marchen archive <name>  # 归档变更，移动到 archive/ 并更新 metadata
 ```
 
+### verify 命令
+```bash
+marchen verify <name>         # 验证变更的 artifact 完整度和 task 完成情况
+marchen verify <name> --json  # 输出 JSON 格式
+```
+
 ## 添加新命令
 
 1. 创建 `src/commands/example.ts`：
@@ -74,7 +81,7 @@ export function registerExampleCommand(program: Command): void {
 }
 ```
 
-2. 在 `src/index.ts` 中注册：
+2. 在 `src/program.ts` 中注册：
 ```typescript
 import { registerExampleCommand } from './commands/example.js'
 registerExampleCommand(program)

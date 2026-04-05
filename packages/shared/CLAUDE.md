@@ -34,6 +34,9 @@ src/
 - `ChangeStatus` - 变更状态 `'open' | 'archived'`
 - `ArtifactDefinition` - 制品定义 `{ id, generates, requires }`
 - `SchemaDefinition` - Schema 定义 `{ name, artifacts }`
+- `TaskItem` - 任务条目 `{ description, completed }`
+- `ArtifactStatus` - 制品存在状态 `{ id, exists, capabilities? }`
+- `VerifyResult` - 验证结果 `{ name, artifacts, tasks }`
 
 ## 开发命令
 
