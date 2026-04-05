@@ -209,7 +209,7 @@ export class ChangeManager {
       const content = await readFile(tasksPath)
       const items = [...content.matchAll(/^- \[([ x])\] (.+)$/gm)].map(
         (match) => ({
-          description: match[2],
+          description: match[2]!,
           completed: match[1] === 'x',
         }),
       )
