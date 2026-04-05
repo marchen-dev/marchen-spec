@@ -1,7 +1,7 @@
-import type { ChangeMetadata, VerifyResult } from '@marchen-spec/shared'
+import type { ArtifactContentStatus, ArtifactStatusDetail, ChangeMetadata, DependencyInfo, InstructionsResult, StatusResult, WorkflowStatus } from '@marchen-spec/shared'
 import type { Workspace } from './workspace.js'
 import { join } from 'node:path'
-import { ARTIFACT_TEMPLATES, DEFAULT_SCHEMA } from '@marchen-spec/config'
+import { ARTIFACT_INSTRUCTIONS, ARTIFACT_TEMPLATES, DEFAULT_SCHEMA } from '@marchen-spec/config'
 import {
   ensureDir,
   exists,
@@ -168,16 +168,16 @@ export class ChangeManager {
   }
 
   /**
-   * 验证一个变更的 artifact 完整度和 task 完成情况
+   * 查看变更的 artifact 状态和工作流建议
    *
-   * 检查各 artifact 文件是否存在，解析 tasks.md 中的 checkbox 状态。
-   * 纯信息展示，不做通过/失败判断。
+   * 检测各 artifact 的内容状态（不只是文件存在性），
+   * 计算工作流建议（ready/blocked/next），解析 tasks 进度。
    *
    * @param name - 变更名称
-   * @returns 验证结果
+   * @returns 状态结果
    * @throws {MarchenSpecError} 未初始化或变更不存在时抛出
    */
-  async verify(name: string): Promise<VerifyResult> {
+  async status(name: string): Promise<StatusResult> {
     await this.ensureInitialized()
 
     const changeDir = join(this.workspace.changeDir, name)
@@ -185,42 +185,256 @@ export class ChangeManager {
       throw new ValidationError(`变更 "${name}" 不存在`)
     }
 
-    // 检查各 artifact 的存在性
-    const artifacts = await Promise.all(
-      DEFAULT_SCHEMA.artifacts.map(async (artifact) => {
-        const artifactPath = join(changeDir, artifact.generates)
-        const artifactExists = await exists(artifactPath)
+    // 读取元数据获取 schema
+    const metadataPath = join(changeDir, METADATA_FILE_NAME)
+    const metadata = await readYaml<ChangeMetadata>(metadataPath)
 
-        // specs 类型额外扫描子目录
-        if (artifact.id === 'specs' && artifactExists) {
-          const entries = await listDir(artifactPath)
-          return { id: artifact.id, exists: artifactExists, capabilities: entries }
-        }
+    // 逐个检测 artifact 的内容状态
+    // specs 是目录类型，需要特殊处理；其余为单文件类型
+    const artifacts: ArtifactStatusDetail[] = []
+    for (const artifact of DEFAULT_SCHEMA.artifacts) {
+      const artifactPath = join(changeDir, artifact.generates)
 
-        return { id: artifact.id, exists: artifactExists }
-      }),
-    )
+      if (artifact.id === 'specs') {
+        const result = await this.detectSpecsStatus(artifactPath)
+        artifacts.push({ id: artifact.id, path: artifact.generates, ...result })
+      } else {
+        const status = await this.detectContentStatus(artifactPath)
+        artifacts.push({ id: artifact.id, status, path: artifact.generates })
+      }
+    }
 
-    // 解析 tasks.md
-    const tasksPath = join(changeDir, 'tasks.md')
-    let tasks: VerifyResult['tasks'] = null
+    // 根据各 artifact 的内容状态，计算工作流建议（哪些可以开始、哪些被阻塞）
+    const statusMap = new Map(artifacts.map(a => [a.id, a.status]))
+    const workflow = this.computeWorkflow(statusMap)
 
-    if (await exists(tasksPath)) {
+    // tasks 进度独立于 artifact 状态：只要 tasks.md 有实质内容就解析 checkbox
+    // 这样 artifact status 只反映"有没有内容"，进度信息放在 tasks 字段
+    const tasksArtifact = artifacts.find(a => a.id === 'tasks')
+    let tasks: StatusResult['tasks'] = null
+    if (tasksArtifact && tasksArtifact.status === 'filled') {
+      const tasksPath = join(changeDir, 'tasks.md')
       const content = await readFile(tasksPath)
+      // 匹配 markdown checkbox 格式：- [ ] 或 - [x]
       const items = [...content.matchAll(/^- \[([ x])\] (.+)$/gm)].map(
-        (match) => ({
+        match => ({
           description: match[2]!,
           completed: match[1] === 'x',
         }),
       )
       tasks = {
         total: items.length,
-        completed: items.filter((item) => item.completed).length,
+        completed: items.filter(item => item.completed).length,
         items,
       }
     }
 
-    return { name, artifacts, tasks }
+    return { name, schema: metadata.schema, artifacts, workflow, tasks }
+  }
+
+  /**
+   * 获取指定 artifact 的创建指令
+   *
+   * 返回模板、指导文本、依赖 artifacts 的内容和完成后解锁的 artifacts。
+   *
+   * @param name - 变更名称
+   * @param artifactId - artifact 标识符
+   * @returns 指令结果
+   * @throws {MarchenSpecError} 未初始化、变更不存在或 artifact 不存在时抛出
+   */
+  async getInstructions(name: string, artifactId: string): Promise<InstructionsResult> {
+    await this.ensureInitialized()
+
+    const changeDir = join(this.workspace.changeDir, name)
+    if (!(await exists(changeDir))) {
+      throw new ValidationError(`变更 "${name}" 不存在`)
+    }
+
+    // 查找 artifact 定义，校验 artifactId 合法性
+    const artifactDef = DEFAULT_SCHEMA.artifacts.find(a => a.id === artifactId)
+    if (!artifactDef) {
+      throw new ValidationError(
+        `Artifact "${artifactId}" 不存在，可用的 artifact: ${DEFAULT_SCHEMA.artifacts.map(a => a.id).join(', ')}`,
+      )
+    }
+
+    // 获取模板和指导文本
+    const template = ARTIFACT_TEMPLATES[artifactId] ?? ''
+    const instruction = ARTIFACT_INSTRUCTIONS[artifactId] ?? ''
+
+    // 构建依赖信息：读取每个依赖 artifact 的状态和内容
+    // specs 目录需要拼接所有 spec 文件内容；单文件直接读取
+    const dependencies: DependencyInfo[] = []
+    for (const depId of artifactDef.requires) {
+      const depDef = DEFAULT_SCHEMA.artifacts.find(a => a.id === depId)
+      if (!depDef) continue
+
+      const depPath = join(changeDir, depDef.generates)
+
+      if (depId === 'specs') {
+        const specsResult = await this.detectSpecsStatus(depPath)
+        const content = specsResult.status === 'filled'
+          ? await this.readSpecsContent(depPath)
+          : null
+        dependencies.push({ id: depId, status: specsResult.status, path: depDef.generates, content })
+      } else {
+        const status = await this.detectContentStatus(depPath)
+        const content = status === 'filled' ? await readFile(depPath) : null
+        dependencies.push({ id: depId, status, path: depDef.generates, content })
+      }
+    }
+
+    // 计算 unlocks（谁把当前 artifact 列为依赖）
+    const unlocks = DEFAULT_SCHEMA.artifacts
+      .filter(a => a.requires.includes(artifactId))
+      .map(a => a.id)
+
+    return {
+      changeName: name,
+      artifactId,
+      outputPath: artifactDef.generates,
+      template,
+      instruction,
+      dependencies,
+      unlocks,
+    }
+  }
+
+  /**
+   * 检测单文件 artifact 的内容状态
+   *
+   * 判断逻辑：去掉 HTML 注释、空行、纯 markdown 标题行后，
+   * 剩余内容超过 20 字符算 filled，否则算 empty（模板骨架）。
+   *
+   * 阈值 20 字符是粗粒度信号，Skill 会读文件内容自己做精确判断。
+   *
+   * @param filePath - 文件绝对路径
+   * @returns 内容状态：missing / empty / filled
+   */
+  private async detectContentStatus(filePath: string): Promise<ArtifactContentStatus> {
+    if (!(await exists(filePath))) {
+      return 'missing'
+    }
+
+    const content = await readFile(filePath)
+    const stripped = content
+      .replace(/<!--[\s\S]*?-->/g, '')  // 去掉 HTML 注释
+      .split('\n')
+      .filter(line => line.trim() !== '')  // 去掉空行
+      .filter(line => !/^#{1,6}\s/.test(line.trim()))  // 去掉纯标题行
+      .join('\n')
+      .trim()
+
+    return stripped.length > 20 ? 'filled' : 'empty'
+  }
+
+  /**
+   * 检测 specs 目录的内容状态和 capabilities 列表
+   *
+   * specs 是目录类型 artifact，状态判断规则：
+   * - 目录不存在 → missing
+   * - 目录存在但无子目录 → no-content
+   * - 有子目录但所有 spec.md 都是空的 → no-content（返回 capabilities 列表）
+   * - 至少一个 spec.md 有实质内容 → filled
+   *
+   * @param specsPath - specs 目录绝对路径
+   * @returns 状态和 capabilities（子目录名列表）
+   */
+  private async detectSpecsStatus(specsPath: string): Promise<{
+    status: ArtifactContentStatus
+    capabilities: string[]
+  }> {
+    if (!(await exists(specsPath))) {
+      return { status: 'missing', capabilities: [] }
+    }
+
+    const entries = await listDir(specsPath)
+    if (entries.length === 0) {
+      return { status: 'no-content', capabilities: [] }
+    }
+
+    // 检查是否有至少一个 filled 的 spec 文件
+    for (const entry of entries) {
+      const specFile = join(specsPath, entry, 'spec.md')
+      if (await exists(specFile)) {
+        const status = await this.detectContentStatus(specFile)
+        if (status === 'filled') {
+          return { status: 'filled', capabilities: entries }
+        }
+      }
+    }
+
+    return { status: 'no-content', capabilities: entries }
+  }
+
+  /**
+   * 读取 specs 目录下所有 spec 文件内容并拼接
+   *
+   * 每个文件以 `--- specs/<name>/spec.md ---` 作为分隔标记，
+   * 方便 LLM 识别各 spec 的边界。
+   *
+   * @param specsPath - specs 目录绝对路径
+   * @returns 拼接后的完整内容
+   */
+  private async readSpecsContent(specsPath: string): Promise<string> {
+    const entries = await listDir(specsPath)
+    const parts: string[] = []
+
+    for (const entry of entries) {
+      const specFile = join(specsPath, entry, 'spec.md')
+      if (await exists(specFile)) {
+        const content = await readFile(specFile)
+        parts.push(`--- specs/${entry}/spec.md ---\n${content}`)
+      }
+    }
+
+    return parts.join('\n\n')
+  }
+
+  /**
+   * 根据固定依赖规则计算工作流状态
+   *
+   * 依赖关系（硬编码，仅 spec-driven schema）：
+   * - proposal: 无依赖，总是可以开始
+   * - specs: 依赖 proposal filled
+   * - design: 依赖 proposal filled
+   * - tasks: 依赖 specs filled 且 design filled
+   *
+   * 已 filled 的 artifact 不出现在 ready 或 blocked 中。
+   * next 为 ready 列表中的第一个（按优先级排序），全部完成时为 null。
+   *
+   * @param statuses - artifact id → 内容状态的映射
+   * @returns 工作流状态（next / ready / blocked）
+   */
+  private computeWorkflow(statuses: Map<string, ArtifactContentStatus>): WorkflowStatus {
+    const isFilled = (id: string) => statuses.get(id) === 'filled'
+    const needsWork = (id: string) => !isFilled(id)
+
+    const ready: string[] = []
+    const blocked: string[] = []
+
+    // proposal: 无依赖
+    if (needsWork('proposal')) ready.push('proposal')
+
+    // specs: 依赖 proposal
+    if (needsWork('specs')) {
+      if (isFilled('proposal')) ready.push('specs')
+      else blocked.push('specs')
+    }
+
+    // design: 依赖 proposal
+    if (needsWork('design')) {
+      if (isFilled('proposal')) ready.push('design')
+      else blocked.push('design')
+    }
+
+    // tasks: 依赖 specs + design
+    if (needsWork('tasks')) {
+      if (isFilled('specs') && isFilled('design')) ready.push('tasks')
+      else blocked.push('tasks')
+    }
+
+    return { next: ready[0] ?? null, ready, blocked }
   }
 
   /**

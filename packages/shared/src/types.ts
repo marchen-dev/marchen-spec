@@ -65,32 +65,103 @@ export interface TaskItem {
   readonly completed: boolean
 }
 
+// ============================================================
+// Artifact 内容状态（status 命令）
+// ============================================================
+
 /**
- * 单个 artifact 的存在状态
+ * Artifact 内容状态
+ *
+ * 仅表达内容维度，不包含 tasks 完成进度
+ * - empty: 文件存在，内容为模板骨架
+ * - filled: 文件存在，有实质内容
+ * - missing: 文件不存在
+ * - no-content: 目录存在但为空（仅 specs）
  */
-export interface ArtifactStatus {
-  /** artifact 标识符（如 'proposal'、'design'、'tasks'、'specs'） */
+export type ArtifactContentStatus = 'empty' | 'filled' | 'missing' | 'no-content'
+
+/**
+ * 单个 artifact 的状态详情
+ */
+export interface ArtifactStatusDetail {
+  /** artifact 标识符 */
   readonly id: string
-  /** 文件/目录是否存在 */
-  readonly exists: boolean
+  /** 内容状态 */
+  readonly status: ArtifactContentStatus
+  /** 文件/目录路径（相对于变更目录） */
+  readonly path: string
   /** specs 类型时，子目录名列表（capability 名称） */
   readonly capabilities?: readonly string[]
 }
 
 /**
- * verify 命令的返回结果
+ * 工作流状态
  *
- * 包含变更的 artifact 完整度和 task 完成情况
+ * 根据 artifact 依赖关系和内容状态计算
  */
-export interface VerifyResult {
+export interface WorkflowStatus {
+  /** 建议的下一步 artifact，全部完成时为 null */
+  readonly next: string | null
+  /** 可以开始的 artifact 列表 */
+  readonly ready: readonly string[]
+  /** 被阻塞的 artifact 列表 */
+  readonly blocked: readonly string[]
+}
+
+/**
+ * status 命令的返回结果
+ */
+export interface StatusResult {
   /** 变更名称 */
   readonly name: string
-  /** 各 artifact 的存在状态 */
-  readonly artifacts: readonly ArtifactStatus[]
-  /** task 完成信息，tasks.md 不存在时为 null */
+  /** schema 名称 */
+  readonly schema: string
+  /** 各 artifact 的状态详情 */
+  readonly artifacts: readonly ArtifactStatusDetail[]
+  /** 工作流状态 */
+  readonly workflow: WorkflowStatus
+  /** task 完成信息，tasks.md 无实质内容时为 null */
   readonly tasks: {
     readonly total: number
     readonly completed: number
     readonly items: readonly TaskItem[]
   } | null
+}
+
+// ============================================================
+// Instructions 命令
+// ============================================================
+
+/**
+ * 依赖 artifact 的信息
+ */
+export interface DependencyInfo {
+  /** artifact 标识符 */
+  readonly id: string
+  /** 内容状态 */
+  readonly status: ArtifactContentStatus
+  /** 文件/目录路径（相对于变更目录） */
+  readonly path: string
+  /** 文件内容，filled 时为实际内容，否则为 null；specs 目录自动拼接 */
+  readonly content: string | null
+}
+
+/**
+ * instructions 命令的返回结果
+ */
+export interface InstructionsResult {
+  /** 变更名称 */
+  readonly changeName: string
+  /** artifact 标识符 */
+  readonly artifactId: string
+  /** 输出路径（相对于变更目录） */
+  readonly outputPath: string
+  /** 模板内容 */
+  readonly template: string
+  /** 给 LLM 的指导文本 */
+  readonly instruction: string
+  /** 依赖 artifacts 的信息 */
+  readonly dependencies: readonly DependencyInfo[]
+  /** 完成后解锁的 artifact 列表 */
+  readonly unlocks: readonly string[]
 }
