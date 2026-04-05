@@ -3,6 +3,7 @@ import { registerArchiveCommand } from './commands/archive.js'
 import { registerInitCommand } from './commands/init.js'
 import { registerListCommand } from './commands/list.js'
 import { registerNewCommand } from './commands/new.js'
+import { registerVerifyCommand } from './commands/verify.js'
 
 /**
  * 构建 CLI 程序实例
@@ -21,6 +22,7 @@ export function buildCliProgram(): Command {
   registerInitCommand(program)
   registerListCommand(program)
   registerNewCommand(program)
+  registerVerifyCommand(program)
 
   return program
 }
