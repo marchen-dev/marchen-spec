@@ -13,10 +13,11 @@
 - 2026-04-03: [CLI 发布配置](../openspec/changes/archive/2026-04-03-setup-cli-release/)
 - 2026-04-03: 简化 specs 架构 (去掉 main specs，archive 作为唯一真相，见 [specs 架构决策](./references/specs-architecture-decision.md))
 - 2026-04-03: archive 命令 (简化版，只移动文件)
+- 2026-04-05: [verify 命令](../openspec/changes/archive/2026-04-05-implement-verify-command/)
 
 ## 进行中 🚧
 
-- [ ] verify 命令 — [设计思路](./references/verify-command-design.md)
+（无）
 
 ## 计划中 📋
 
