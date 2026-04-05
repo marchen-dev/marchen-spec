@@ -1,6 +1,6 @@
 {
   "name": "@marchen-spec/core",
-  "version": "0.2.2",
+  "version": "0.1.1",
   "private": true,
   "description": "Core workflow layer for MarchenSpec",
   "type": "module",
