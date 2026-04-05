@@ -1,5 +1,7 @@
 # MarchenSpec 路线图
 
+参考 [架构决策](./references/specs-architecture-decision.md) | [OpenSpec 功能清单](./references/openspec-llms.txt)
+
 ## 已完成 ✅
 
 - 2026-03-22: [项目基础搭建](../openspec/changes/archive/2026-03-22-bootstrap-monorepo-foundation/)
@@ -11,7 +13,7 @@
 - 2026-03-30: [Class 架构重构](../openspec/changes/archive/2026-03-30-refactor-to-class-architecture/)
 - 2026-04-03: [错误处理重构](../openspec/changes/archive/2026-04-03-refactor-error-handling/)
 - 2026-04-03: [CLI 发布配置](../openspec/changes/archive/2026-04-03-setup-cli-release/)
-- 2026-04-03: 简化 specs 架构 (去掉 main specs，archive 作为唯一真相，见 [specs 架构决策](./references/specs-architecture-decision.md))
+- 2026-04-03: 简化 specs 架构 (去掉 main specs，archive 作为唯一真相)
 - 2026-04-03: archive 命令 (简化版，只移动文件)
 - 2026-04-05: [verify 命令](../openspec/changes/archive/2026-04-05-implement-verify-command/)
 
@@ -21,17 +23,36 @@
 
 ## 计划中 📋
 
-参考 [OpenSpec 功能清单](./references/openspec-llms.txt) | [Specs 架构决策](./references/specs-architecture-decision.md)
+### Phase 1: CLI 基础设施
 
-### 核心循环 (优先)
-- [ ] explore 模式
-- [ ] continue 命令
-- [ ] propose 命令
+为 Skill 层提供 JSON API，是后续一切的基础。
 
-### 辅助命令
-- [ ] ff 命令
-- [ ] bulk-archive 命令
-- [ ] onboard 命令
+- [ ] status 命令 + instructions 命令
+  - `marchen status <name> [--json]` — artifact 内容状态 + 工作流建议
+  - `marchen instructions <name> <artifact-id> [--json]` — 模板 + 指导 + 依赖
+  - 废弃 verify 命令（被 status 替代）
+  - 内容感知状态检测（empty/filled/missing，不只是文件存在性）
+
+### Phase 2: Skill 层
+
+CLI 提供 API 后，编写 Claude Code skills 驱动 AI 工作流。每个 skill 是 `.claude/skills/marchen-*/SKILL.md`。
+
+- [ ] marchen:continue — 调 status → 找 ready artifact → 调 instructions → LLM 生成 → 写入
+- [ ] marchen:propose — marchen new + 循环 continue 直到所有 artifact filled
+- [ ] marchen:apply — 读 tasks.md，逐个实现 task
+- [ ] marchen:explore — 纯对话模式，思考伙伴
+
+### Phase 3: 体验优化
+
+- [ ] bulk-archive 命令（CLI，批量归档）
+- [ ] marchen:onboard skill（引导式入门）
+- [ ] CLI 交互优化（status 彩色输出等）
 
 ### 已移除
-- ~~sync 命令~~ (不再需要，见 [specs 架构决策](./references/specs-architecture-decision.md))
+
+- ~~sync 命令~~ (不需要，见 [架构决策](./references/specs-architecture-decision.md))
+- ~~verify 命令~~ (被 status 替代，见 [架构决策](./references/specs-architecture-decision.md))
+- ~~continue CLI 命令~~ (是 skill，不是 CLI 命令)
+- ~~explore CLI 命令~~ (是 skill，不是 CLI 命令)
+- ~~propose CLI 命令~~ (是 skill，不是 CLI 命令)
+- ~~ff CLI 命令~~ (= propose skill 的别名)
