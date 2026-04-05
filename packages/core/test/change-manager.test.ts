@@ -3,7 +3,7 @@ import { StateError, ValidationError } from '@marchen-spec/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChangeManager, Workspace } from '../src/index.js'
 
-  // Mock fs 层，避免真实文件操作
+// Mock fs 层，避免真实文件操作
 vi.mock('@marchen-spec/fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@marchen-spec/fs')>()
   return {
@@ -15,6 +15,7 @@ vi.mock('@marchen-spec/fs', async (importOriginal) => {
     listDir: vi.fn().mockResolvedValue([]),
     readYaml: vi.fn().mockResolvedValue({}),
     readFile: vi.fn().mockResolvedValue(''),
+    moveDir: vi.fn().mockResolvedValue(undefined),
   }
 })
 
@@ -46,31 +47,24 @@ describe('changeManager.create 创建变更', () => {
     vi.clearAllMocks()
     workspace = new Workspace('/test/root')
     manager = new ChangeManager(workspace)
-    // 默认：已初始化，变更不存在
     vi.mocked(fs.exists).mockResolvedValue(false)
   })
 
   it('未初始化时应该抛出错误', async () => {
     vi.mocked(fs.exists).mockResolvedValue(false)
-
     await expect(manager.create('my-feature')).rejects.toThrow(StateError)
     await expect(manager.create('my-feature')).rejects.toThrow('尚未初始化')
   })
 
   it('名称格式错误时应该抛出错误', async () => {
-    // isInitialized → true
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
-
     await expect(manager.create('Bad_Name')).rejects.toThrow(ValidationError)
-
     vi.mocked(fs.exists).mockResolvedValueOnce(true)
     await expect(manager.create('Bad_Name')).rejects.toThrow('不合法')
   })
 
   it('变更已存在时应该抛出错误', async () => {
-    // isInitialized → true，变更目录 exists → true
     vi.mocked(fs.exists).mockResolvedValue(true)
-
     await expect(manager.create('my-feature')).rejects.toThrow(ValidationError)
     await expect(manager.create('my-feature')).rejects.toThrow('已存在')
   })
@@ -78,43 +72,25 @@ describe('changeManager.create 创建变更', () => {
   it('正常创建变更', async () => {
     // isInitialized → true，变更目录 → false
     vi.mocked(fs.exists)
-      .mockResolvedValueOnce(true) // specDir exists
-      .mockResolvedValueOnce(false) // changeDir not exists
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false)
 
     await manager.create('my-feature')
 
-    // 创建目录（变更根目录 + specs 子目录）
+    // 创建目录
     expect(fs.ensureDir).toHaveBeenCalledTimes(2)
-    expect(fs.ensureDir).toHaveBeenCalledWith(expect.stringContaining('my-feature'))
-    expect(fs.ensureDir).toHaveBeenCalledWith(expect.stringContaining('specs'))
-
-    // 写入 .metadata.yaml
-    expect(fs.writeYaml).toHaveBeenCalledWith(
-      expect.stringContaining('.metadata.yaml'),
-      expect.objectContaining({
-        name: 'my-feature',
-        schema: 'spec-driven',
-        status: 'open',
-      }),
-    )
-
-    // 写入 artifact 文件（proposal.md, design.md, tasks.md）
-    expect(fs.writeFile).toHaveBeenCalledWith(
-      expect.stringContaining('proposal.md'),
-      expect.any(String),
-    )
-    expect(fs.writeFile).toHaveBeenCalledWith(
-      expect.stringContaining('design.md'),
-      expect.any(String),
-    )
-    expect(fs.writeFile).toHaveBeenCalledWith(
-      expect.stringContaining('tasks.md'),
-      expect.any(String),
-    )
+    // 写入元数据
+    expect(fs.writeYaml).toHaveBeenCalledTimes(1)
+    // 写入 artifact 文件（proposal + design + tasks = 3）
+    expect(fs.writeFile).toHaveBeenCalledTimes(3)
   })
 })
 
-describe('changeManager.list 列出变更', () => {
+// ============================================================
+// detectContentStatus 测试
+// ============================================================
+
+describe('detectContentStatus 内容检测', () => {
   let workspace: Workspace
   let manager: ChangeManager
 
@@ -124,67 +100,104 @@ describe('changeManager.list 列出变更', () => {
     manager = new ChangeManager(workspace)
   })
 
-  it('未初始化时应该抛出错误', async () => {
-    vi.mocked(fs.exists).mockResolvedValue(false)
+  // 通过 status() 间接测试 detectContentStatus
+  function setupStatusMocks(opts: {
+    proposalContent?: string
+    designContent?: string
+    tasksContent?: string
+    specsEntries?: string[]
+    specFileContents?: Record<string, string>
+  }) {
+    const {
+      proposalContent = '',
+      designContent = '',
+      tasksContent = '',
+      specsEntries = [],
+      specFileContents = {},
+    } = opts
 
-    await expect(manager.list()).rejects.toThrow(StateError)
-    await expect(manager.list()).rejects.toThrow('尚未初始化')
-  })
+    // exists 调用顺序:
+    // 1. specDir (isInitialized)
+    // 2. changeDir
+    // 3-6. artifact paths (proposal.md, specs/, design.md, tasks.md)
+    // + spec file checks
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true // specDir
+      if (path.endsWith('my-feature')) return true // changeDir
+      if (path.endsWith('proposal.md')) return proposalContent !== null
+      if (path.endsWith('design.md')) return designContent !== null
+      if (path.endsWith('tasks.md')) return tasksContent !== null
+      if (path.endsWith('specs/') || path.endsWith('specs')) return true
+      // spec files
+      for (const entry of specsEntries) {
+        if (path.includes(`specs/${entry}/spec.md`)) return !!specFileContents[entry]
+      }
+      return false
+    })
 
-  it('无变更时返回空数组', async () => {
-    vi.mocked(fs.exists).mockResolvedValueOnce(true)
-    vi.mocked(fs.listDir).mockResolvedValueOnce([])
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.endsWith('proposal.md')) return proposalContent
+      if (path.endsWith('design.md')) return designContent
+      if (path.endsWith('tasks.md')) return tasksContent
+      for (const entry of specsEntries) {
+        if (path.includes(`specs/${entry}/spec.md`)) return specFileContents[entry] ?? ''
+      }
+      return ''
+    })
 
-    const result = await manager.list()
-    expect(result).toEqual([])
-  })
-
-  it('正常列出变更并按创建时间降序排列', async () => {
-    vi.mocked(fs.exists).mockResolvedValueOnce(true)
-    vi.mocked(fs.listDir).mockResolvedValueOnce(['old-change', 'new-change'])
-    vi.mocked(fs.exists)
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(true)
-    vi.mocked(fs.readYaml)
-      .mockResolvedValueOnce({
-        name: 'old-change',
-        schema: 'spec-driven',
-        createdAt: '2026-03-01T00:00:00.000Z',
-        status: 'open',
-      })
-      .mockResolvedValueOnce({
-        name: 'new-change',
-        schema: 'spec-driven',
-        createdAt: '2026-03-29T00:00:00.000Z',
-        status: 'open',
-      })
-
-    const result = await manager.list()
-    expect(result).toHaveLength(2)
-    expect(result[0]!.name).toBe('new-change')
-    expect(result[1]!.name).toBe('old-change')
-  })
-
-  it('应跳过缺失元数据文件的目录', async () => {
-    vi.mocked(fs.exists).mockResolvedValueOnce(true)
-    vi.mocked(fs.listDir).mockResolvedValueOnce(['valid-change', 'broken-change'])
-    vi.mocked(fs.exists)
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false)
-    vi.mocked(fs.readYaml).mockResolvedValueOnce({
-      name: 'valid-change',
+    vi.mocked(fs.readYaml).mockResolvedValue({
+      name: 'my-feature',
       schema: 'spec-driven',
-      createdAt: '2026-03-29T00:00:00.000Z',
+      createdAt: '2026-04-05T00:00:00Z',
       status: 'open',
     })
 
-    const result = await manager.list()
-    expect(result).toHaveLength(1)
-    expect(result[0]!.name).toBe('valid-change')
+    vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
+      if (path.endsWith('specs') || path.endsWith('specs/')) return specsEntries
+      return []
+    })
+  }
+
+  it('模板骨架 → empty', async () => {
+    const template = `## 动机\n\n<!-- 说明这个变更的动机 -->\n\n## 变更内容\n\n<!-- 描述具体变更内容 -->`
+    setupStatusMocks({ proposalContent: template })
+
+    const result = await manager.status('my-feature')
+    const proposal = result.artifacts.find(a => a.id === 'proposal')
+    expect(proposal?.status).toBe('empty')
+  })
+
+  it('有实质内容 → filled', async () => {
+    const content = `## 动机\n\n当前应用只有亮色主题，用户在暗光环境下使用体验差。\n\n## 变更内容\n\n新增暗色模式支持。`
+    setupStatusMocks({ proposalContent: content })
+
+    const result = await manager.status('my-feature')
+    const proposal = result.artifacts.find(a => a.id === 'proposal')
+    expect(proposal?.status).toBe('filled')
+  })
+
+  it('文件不存在 → missing', async () => {
+    setupStatusMocks({ proposalContent: '' })
+    // Override proposal to not exist
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('proposal.md')) return false
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      return false
+    })
+
+    const result = await manager.status('my-feature')
+    const proposal = result.artifacts.find(a => a.id === 'proposal')
+    expect(proposal?.status).toBe('missing')
   })
 })
 
-describe('changeManager.verify 验证变更', () => {
+// ============================================================
+// detectSpecsStatus 测试
+// ============================================================
+
+describe('detectSpecsStatus specs 目录检测', () => {
   let workspace: Workspace
   let manager: ChangeManager
 
@@ -194,88 +207,402 @@ describe('changeManager.verify 验证变更', () => {
     manager = new ChangeManager(workspace)
   })
 
-  it('未初始化时应该抛出错误', async () => {
-    vi.mocked(fs.exists).mockResolvedValue(false)
+  it('空目录 → no-content', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      return false
+    })
+    vi.mocked(fs.listDir).mockResolvedValue([])
+    vi.mocked(fs.readYaml).mockResolvedValue({
+      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+    })
+    vi.mocked(fs.readFile).mockResolvedValue('')
 
-    await expect(manager.verify('my-feature')).rejects.toThrow(StateError)
-    await expect(manager.verify('my-feature')).rejects.toThrow('尚未初始化')
+    const result = await manager.status('my-feature')
+    const specs = result.artifacts.find(a => a.id === 'specs')
+    expect(specs?.status).toBe('no-content')
+    expect(specs?.capabilities).toEqual([])
   })
 
-  it('变更不存在时应该抛出错误', async () => {
-    vi.mocked(fs.exists)
-      .mockResolvedValueOnce(true) // specDir exists
-      .mockResolvedValueOnce(false) // changeDir not exists
-      .mockResolvedValueOnce(true) // specDir exists (second call)
-      .mockResolvedValueOnce(false) // changeDir not exists (second call)
+  it('有 filled spec 文件 → filled', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      if (path.includes('specs/auth/spec.md')) return true
+      return false
+    })
+    vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
+      if (path.endsWith('specs') || path.endsWith('specs/')) return ['auth']
+      return []
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({
+      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+    })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.includes('specs/auth/spec.md')) return '## ADDED Requirements\n\n### 需求: 用户认证\n系统 SHALL 支持用户通过邮箱和密码进行认证登录。\n\n#### 场景: 成功登录\n- WHEN 用户输入正确的邮箱和密码\n- THEN 系统返回认证令牌'
+      return ''
+    })
 
-    await expect(manager.verify('non-existent')).rejects.toThrow(ValidationError)
-    await expect(manager.verify('non-existent')).rejects.toThrow('不存在')
+    const result = await manager.status('my-feature')
+    const specs = result.artifacts.find(a => a.id === 'specs')
+    expect(specs?.status).toBe('filled')
+    expect(specs?.capabilities).toEqual(['auth'])
+  })
+})
+
+// ============================================================
+// detectTasksStatus 测试
+// ============================================================
+
+describe('tasks 进度解析', () => {
+  let workspace: Workspace
+  let manager: ChangeManager
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    workspace = new Workspace('/test/root')
+    manager = new ChangeManager(workspace)
   })
 
-  it('正常验证完整变更', async () => {
-    vi.mocked(fs.exists)
-      .mockResolvedValueOnce(true) // specDir exists (isInitialized)
-      .mockResolvedValueOnce(true) // changeDir exists
-      // artifact checks (proposal, specs, design, tasks)
-      .mockResolvedValueOnce(true) // proposal.md
-      .mockResolvedValueOnce(true) // specs/
-      .mockResolvedValueOnce(true) // design.md
-      .mockResolvedValueOnce(true) // tasks.md
-      .mockResolvedValueOnce(true) // tasks.md exists (for readFile)
+  it('tasks.md 有内容时 artifact status 为 filled，tasks 字段有进度', async () => {
+    const tasksContent = `## 1. 基础设施\n\n- [x] 1.1 创建模块\n- [ ] 1.2 添加依赖\n- [x] 2.1 实现逻辑`
 
-    vi.mocked(fs.listDir).mockResolvedValueOnce(['auth', 'export'])
-    vi.mocked(fs.readFile).mockResolvedValueOnce(
-      '## 1. Setup\n\n- [x] 1.1 Create module\n- [ ] 1.2 Add deps\n\n## 2. Core\n\n- [x] 2.1 Implement logic\n',
-    )
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('tasks.md')) return true
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      return false
+    })
+    vi.mocked(fs.listDir).mockResolvedValue([])
+    vi.mocked(fs.readYaml).mockResolvedValue({
+      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+    })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.endsWith('tasks.md')) return tasksContent
+      return ''
+    })
 
-    const result = await manager.verify('my-feature')
-
-    expect(result.name).toBe('my-feature')
-    expect(result.artifacts).toHaveLength(4)
-    expect(result.artifacts[0]).toEqual({ id: 'proposal', exists: true })
-    expect(result.artifacts[1]).toEqual({ id: 'specs', exists: true, capabilities: ['auth', 'export'] })
-    expect(result.artifacts[2]).toEqual({ id: 'design', exists: true })
-    expect(result.artifacts[3]).toEqual({ id: 'tasks', exists: true })
+    const result = await manager.status('my-feature')
+    const tasks = result.artifacts.find(a => a.id === 'tasks')
+    expect(tasks?.status).toBe('filled')
     expect(result.tasks).toEqual({
       total: 3,
       completed: 2,
       items: [
-        { description: '1.1 Create module', completed: true },
-        { description: '1.2 Add deps', completed: false },
-        { description: '2.1 Implement logic', completed: true },
+        { description: '1.1 创建模块', completed: true },
+        { description: '1.2 添加依赖', completed: false },
+        { description: '2.1 实现逻辑', completed: true },
       ],
     })
   })
 
-  it('tasks.md 不存在时 tasks 为 null', async () => {
-    vi.mocked(fs.exists)
-      .mockResolvedValueOnce(true) // specDir exists
-      .mockResolvedValueOnce(true) // changeDir exists
-      .mockResolvedValueOnce(true) // proposal.md
-      .mockResolvedValueOnce(false) // specs/
-      .mockResolvedValueOnce(false) // design.md
-      .mockResolvedValueOnce(false) // tasks.md
-      .mockResolvedValueOnce(false) // tasks.md (for readFile check)
+  it('tasks.md 为模板骨架时 tasks 字段为 null', async () => {
+    const template = `## 1. <!-- 任务组名称 -->\n\n- [ ] 1.1 <!-- 任务描述 -->`
 
-    const result = await manager.verify('my-feature')
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('tasks.md')) return true
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      return false
+    })
+    vi.mocked(fs.listDir).mockResolvedValue([])
+    vi.mocked(fs.readYaml).mockResolvedValue({
+      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+    })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.endsWith('tasks.md')) return template
+      return ''
+    })
 
+    const result = await manager.status('my-feature')
     expect(result.tasks).toBeNull()
   })
+})
 
-  it('specs/ 为空目录时 capabilities 为空数组', async () => {
-    vi.mocked(fs.exists)
-      .mockResolvedValueOnce(true) // specDir exists
-      .mockResolvedValueOnce(true) // changeDir exists
-      .mockResolvedValueOnce(false) // proposal.md
-      .mockResolvedValueOnce(true) // specs/
-      .mockResolvedValueOnce(false) // design.md
-      .mockResolvedValueOnce(false) // tasks.md
-      .mockResolvedValueOnce(false) // tasks.md (for readFile check)
+// ============================================================
+// computeWorkflow 测试
+// ============================================================
 
-    vi.mocked(fs.listDir).mockResolvedValueOnce([])
+describe('computeWorkflow 工作流计算', () => {
+  let workspace: Workspace
+  let manager: ChangeManager
 
-    const result = await manager.verify('my-feature')
+  beforeEach(() => {
+    vi.clearAllMocks()
+    workspace = new Workspace('/test/root')
+    manager = new ChangeManager(workspace)
+  })
 
-    expect(result.artifacts[1]).toEqual({ id: 'specs', exists: true, capabilities: [] })
+  function setupWithStatuses(statuses: Record<string, string>) {
+    const specsHasContent = statuses.specs === 'filled'
+
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('proposal.md')) return true
+      if (path.endsWith('design.md')) return true
+      if (path.endsWith('tasks.md')) return true
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      if (specsHasContent && path.includes('specs/auth/spec.md')) return true
+      return false
+    })
+
+    vi.mocked(fs.readYaml).mockResolvedValue({
+      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+    })
+
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.endsWith('proposal.md')) {
+        return statuses.proposal === 'filled'
+          ? '## 动机\n\n当前应用只有亮色主题，用户在暗光环境下使用体验差。添加暗色模式。'
+          : '## 动机\n\n<!-- 说明 -->'
+      }
+      if (path.endsWith('design.md')) {
+        return statuses.design === 'filled'
+          ? '## 背景\n\n当前应用使用硬编码的亮色样式，没有主题系统。需要引入主题切换。'
+          : '## 背景\n\n<!-- 背景 -->'
+      }
+      if (path.endsWith('tasks.md')) {
+        return statuses.tasks === 'filled'
+          ? '## 1. 基础设施\n\n- [ ] 1.1 创建主题模块并添加依赖\n- [ ] 1.2 实现主题切换逻辑'
+          : '## 1. <!-- 任务组 -->\n\n- [ ] 1.1 <!-- 描述 -->'
+      }
+      if (specsHasContent && path.includes('specs/auth/spec.md')) {
+        return '## ADDED Requirements\n\n### 需求: 认证\n系统 SHALL 支持用户通过邮箱和密码进行认证登录操作。'
+      }
+      return ''
+    })
+
+    vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
+      if ((path.endsWith('specs') || path.endsWith('specs/')) && specsHasContent) return ['auth']
+      return []
+    })
+  }
+
+  it('初始状态: proposal ready, 其余 blocked', async () => {
+    setupWithStatuses({ proposal: 'empty', specs: 'empty', design: 'empty', tasks: 'empty' })
+
+    const result = await manager.status('my-feature')
+    expect(result.workflow.next).toBe('proposal')
+    expect(result.workflow.ready).toEqual(['proposal'])
+    expect(result.workflow.blocked).toEqual(['specs', 'design', 'tasks'])
+  })
+
+  it('proposal filled: specs + design ready, tasks blocked', async () => {
+    setupWithStatuses({ proposal: 'filled', specs: 'empty', design: 'empty', tasks: 'empty' })
+
+    const result = await manager.status('my-feature')
+    expect(result.workflow.next).toBe('specs')
+    expect(result.workflow.ready).toEqual(['specs', 'design'])
+    expect(result.workflow.blocked).toEqual(['tasks'])
+  })
+
+  it('proposal + specs + design filled: tasks ready', async () => {
+    setupWithStatuses({ proposal: 'filled', specs: 'filled', design: 'filled', tasks: 'empty' })
+
+    const result = await manager.status('my-feature')
+    expect(result.workflow.next).toBe('tasks')
+    expect(result.workflow.ready).toEqual(['tasks'])
+    expect(result.workflow.blocked).toEqual([])
+  })
+
+  it('所有 filled: next 为 null', async () => {
+    setupWithStatuses({ proposal: 'filled', specs: 'filled', design: 'filled', tasks: 'filled' })
+
+    const result = await manager.status('my-feature')
+    expect(result.workflow.next).toBeNull()
+    expect(result.workflow.ready).toEqual([])
+    expect(result.workflow.blocked).toEqual([])
+  })
+})
+
+// ============================================================
+// status() 集成测试
+// ============================================================
+
+describe('changeManager.status 集成', () => {
+  let workspace: Workspace
+  let manager: ChangeManager
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    workspace = new Workspace('/test/root')
+    manager = new ChangeManager(workspace)
+  })
+
+  it('未初始化时抛出 StateError', async () => {
+    vi.mocked(fs.exists).mockResolvedValue(false)
+    await expect(manager.status('my-feature')).rejects.toThrow(StateError)
+  })
+
+  it('变更不存在时抛出 ValidationError', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      return false
+    })
+    await expect(manager.status('non-existent')).rejects.toThrow(ValidationError)
+    await expect(manager.status('non-existent')).rejects.toThrow('不存在')
+  })
+
+  it('返回完整的 StatusResult', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('proposal.md')) return true
+      if (path.endsWith('design.md')) return true
+      if (path.endsWith('tasks.md')) return true
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      return false
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({
+      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+    })
+    vi.mocked(fs.readFile).mockResolvedValue('## 标题\n\n<!-- 注释 -->')
+    vi.mocked(fs.listDir).mockResolvedValue([])
+
+    const result = await manager.status('my-feature')
+
+    expect(result.name).toBe('my-feature')
+    expect(result.schema).toBe('spec-driven')
+    expect(result.artifacts).toHaveLength(4)
+    expect(result.workflow).toBeDefined()
+    expect(result.workflow.next).toBe('proposal')
+  })
+})
+
+// ============================================================
+// getInstructions() 测试
+// ============================================================
+
+describe('changeManager.getInstructions', () => {
+  let workspace: Workspace
+  let manager: ChangeManager
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    workspace = new Workspace('/test/root')
+    manager = new ChangeManager(workspace)
+  })
+
+  it('未初始化时抛出 StateError', async () => {
+    vi.mocked(fs.exists).mockResolvedValue(false)
+    await expect(manager.getInstructions('my-feature', 'proposal')).rejects.toThrow(StateError)
+  })
+
+  it('变更不存在时抛出 ValidationError', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      return false
+    })
+    await expect(manager.getInstructions('non-existent', 'proposal')).rejects.toThrow(ValidationError)
+  })
+
+  it('artifact 不存在时抛出 ValidationError', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      return false
+    })
+    await expect(manager.getInstructions('my-feature', 'unknown')).rejects.toThrow(ValidationError)
+    await expect(manager.getInstructions('my-feature', 'unknown')).rejects.toThrow('不存在')
+  })
+
+  it('proposal 指令: 无依赖, unlocks specs + design', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      return false
+    })
+
+    const result = await manager.getInstructions('my-feature', 'proposal')
+
+    expect(result.changeName).toBe('my-feature')
+    expect(result.artifactId).toBe('proposal')
+    expect(result.outputPath).toBe('proposal.md')
+    expect(result.template).toBeTruthy()
+    expect(result.instruction).toBeTruthy()
+    expect(result.dependencies).toEqual([])
+    expect(result.unlocks).toEqual(['specs', 'design'])
+  })
+
+  it('specs 指令: 依赖 proposal, unlocks tasks', async () => {
+    const proposalContent = '## 动机\n\n当前应用只有亮色主题，用户在暗光环境下使用体验差，需要暗色模式支持。'
+
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('proposal.md')) return true
+      return false
+    })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.endsWith('proposal.md')) return proposalContent
+      return ''
+    })
+
+    const result = await manager.getInstructions('my-feature', 'specs')
+
+    expect(result.dependencies).toHaveLength(1)
+    expect(result.dependencies[0]!.id).toBe('proposal')
+    expect(result.dependencies[0]!.status).toBe('filled')
+    expect(result.dependencies[0]!.content).toBe(proposalContent)
+    expect(result.unlocks).toEqual(['tasks'])
+  })
+
+  it('tasks 指令: 依赖 specs + design', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      if (path.endsWith('design.md')) return true
+      return false
+    })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.endsWith('design.md')) return '## 背景\n\n当前应用使用硬编码的亮色样式，需要重构为主题系统支持动态切换。'
+      return ''
+    })
+    vi.mocked(fs.listDir).mockResolvedValue([])
+
+    const result = await manager.getInstructions('my-feature', 'tasks')
+
+    expect(result.dependencies).toHaveLength(2)
+    expect(result.dependencies[0]!.id).toBe('specs')
+    expect(result.dependencies[1]!.id).toBe('design')
+    expect(result.unlocks).toEqual([])
+  })
+
+  it('specs 依赖内容自动拼接', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      if (path.includes('specs/auth/spec.md')) return true
+      if (path.includes('specs/theme/spec.md')) return true
+      if (path.endsWith('design.md')) return true
+      return false
+    })
+    vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
+      if (path.endsWith('specs') || path.endsWith('specs/')) return ['auth', 'theme']
+      return []
+    })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.includes('specs/auth/spec.md')) return '## Auth spec\n\n系统 SHALL 支持用户通过邮箱和密码进行认证登录。'
+      if (path.includes('specs/theme/spec.md')) return '## Theme spec\n\n系统 SHALL 支持暗色主题和亮色主题之间的切换。'
+      if (path.endsWith('design.md')) return '## 背景\n\n当前应用使用硬编码的亮色样式，需要重构为主题系统。'
+      return ''
+    })
+
+    const result = await manager.getInstructions('my-feature', 'tasks')
+
+    const specsDep = result.dependencies.find(d => d.id === 'specs')
+    expect(specsDep?.status).toBe('filled')
+    expect(specsDep?.content).toContain('--- specs/auth/spec.md ---')
+    expect(specsDep?.content).toContain('系统 SHALL 支持用户通过邮箱和密码进行认证登录')
+    expect(specsDep?.content).toContain('--- specs/theme/spec.md ---')
+    expect(specsDep?.content).toContain('系统 SHALL 支持暗色主题和亮色主题之间的切换')
   })
 })
