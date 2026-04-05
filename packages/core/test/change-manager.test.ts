@@ -251,6 +251,35 @@ describe('detectSpecsStatus specs 目录检测', () => {
     expect(specs?.status).toBe('filled')
     expect(specs?.capabilities).toEqual(['auth'])
   })
+
+  it('多个 spec 文件部分填充 → no-content', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('specs') || path.endsWith('specs/')) return true
+      if (path.includes('specs/auth/spec.md')) return true
+      if (path.includes('specs/theme/spec.md')) return true
+      return false
+    })
+    vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
+      if (path.endsWith('specs') || path.endsWith('specs/')) return ['auth', 'theme']
+      return []
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({
+      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+    })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.includes('specs/auth/spec.md')) return '## ADDED Requirements\n\n### 需求: 用户认证\n系统 SHALL 支持用户通过邮箱和密码进行认证登录。\n\n#### 场景: 成功登录\n- WHEN 用户输入正确的邮箱和密码\n- THEN 系统返回认证令牌'
+      // theme 的 spec.md 只有模板骨架，未填充
+      if (path.includes('specs/theme/spec.md')) return '## ADDED Requirements\n\n<!-- 需求描述 -->'
+      return ''
+    })
+
+    const result = await manager.status('my-feature')
+    const specs = result.artifacts.find(a => a.id === 'specs')
+    expect(specs?.status).toBe('no-content')
+    expect(specs?.capabilities).toEqual(['auth', 'theme'])
+  })
 })
 
 // ============================================================
