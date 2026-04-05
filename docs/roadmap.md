@@ -9,12 +9,14 @@
 - 2026-03-30: [list 命令](../openspec/changes/archive/2026-03-30-implement-list-command/)
 - 2026-03-31: [知识库重构为 docs 结构](../openspec/changes/archive/2026-03-31-refactor-knowledge-to-docs/)
 - 2026-03-30: [Class 架构重构](../openspec/changes/archive/2026-03-30-refactor-to-class-architecture/)
+- 2026-04-03: [错误处理重构](../openspec/changes/archive/2026-04-03-refactor-error-handling/)
+- 2026-04-03: [CLI 发布配置](../openspec/changes/archive/2026-04-03-setup-cli-release/)
+- 2026-04-03: 简化 specs 架构 (去掉 main specs，archive 作为唯一真相，见 [specs 架构决策](./references/specs-architecture-decision.md))
+- 2026-04-03: archive 命令 (简化版，只移动文件)
 
 ## 进行中 🚧
 
-- [ ] 简化 specs 架构 (去掉 main specs，archive 作为唯一真相)
-- [ ] archive 命令 (简化版，只移动文件)
-- [ ] verify 命令
+- [ ] verify 命令 — [设计思路](./references/verify-command-design.md)
 
 ## 计划中 📋
 

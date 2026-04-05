@@ -1,4 +1,4 @@
-import type { ChangeMetadata } from '@marchen-spec/shared'
+import type { ChangeMetadata, VerifyResult } from '@marchen-spec/shared'
 import type { Workspace } from './workspace.js'
 import { join } from 'node:path'
 import { ARTIFACT_TEMPLATES, DEFAULT_SCHEMA } from '@marchen-spec/config'
@@ -7,6 +7,7 @@ import {
   exists,
   listDir,
   moveDir,
+  readFile,
   readYaml,
   writeFile,
   writeYaml,
@@ -164,6 +165,62 @@ export class ChangeManager {
     })
 
     return changes
+  }
+
+  /**
+   * 验证一个变更的 artifact 完整度和 task 完成情况
+   *
+   * 检查各 artifact 文件是否存在，解析 tasks.md 中的 checkbox 状态。
+   * 纯信息展示，不做通过/失败判断。
+   *
+   * @param name - 变更名称
+   * @returns 验证结果
+   * @throws {MarchenSpecError} 未初始化或变更不存在时抛出
+   */
+  async verify(name: string): Promise<VerifyResult> {
+    await this.ensureInitialized()
+
+    const changeDir = join(this.workspace.changeDir, name)
+    if (!(await exists(changeDir))) {
+      throw new ValidationError(`变更 "${name}" 不存在`)
+    }
+
+    // 检查各 artifact 的存在性
+    const artifacts = await Promise.all(
+      DEFAULT_SCHEMA.artifacts.map(async (artifact) => {
+        const artifactPath = join(changeDir, artifact.generates)
+        const artifactExists = await exists(artifactPath)
+
+        // specs 类型额外扫描子目录
+        if (artifact.id === 'specs' && artifactExists) {
+          const entries = await listDir(artifactPath)
+          return { id: artifact.id, exists: artifactExists, capabilities: entries }
+        }
+
+        return { id: artifact.id, exists: artifactExists }
+      }),
+    )
+
+    // 解析 tasks.md
+    const tasksPath = join(changeDir, 'tasks.md')
+    let tasks: VerifyResult['tasks'] = null
+
+    if (await exists(tasksPath)) {
+      const content = await readFile(tasksPath)
+      const items = [...content.matchAll(/^- \[([ x])\] (.+)$/gm)].map(
+        (match) => ({
+          description: match[2],
+          completed: match[1] === 'x',
+        }),
+      )
+      tasks = {
+        total: items.length,
+        completed: items.filter((item) => item.completed).length,
+        items,
+      }
+    }
+
+    return { name, artifacts, tasks }
   }
 
   /**
