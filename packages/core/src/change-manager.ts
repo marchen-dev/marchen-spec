@@ -411,8 +411,8 @@ export class ChangeManager {
    * @returns 工作流状态（next / ready / blocked）
    */
   private computeWorkflow(statuses: Map<string, ArtifactContentStatus>): WorkflowStatus {
-    const isFilled = (id: string) => statuses.get(id) === 'filled'
-    const needsWork = (id: string) => !isFilled(id)
+    const isFilled = (id: string): boolean => statuses.get(id) === 'filled'
+    const needsWork = (id: string): boolean => !isFilled(id)
 
     const ready: string[] = []
     const blocked: string[] = []

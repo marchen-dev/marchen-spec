@@ -1,7 +1,7 @@
 import { SPEC_DIRECTORY_NAME } from '@marchen-spec/shared'
 
-export { DEFAULT_SCHEMA } from './schema.js'
 export { ARTIFACT_INSTRUCTIONS } from './instructions.js'
+export { DEFAULT_SCHEMA } from './schema.js'
 export {
   ARTIFACT_TEMPLATES,
   DESIGN_TEMPLATE,
