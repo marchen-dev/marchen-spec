@@ -51,15 +51,53 @@ describe('workspace', () => {
       const workspace = new Workspace('/test/root')
       await workspace.initialize()
 
-      // 创建 3 个目录（specDir, changes, archive）
-      expect(fs.ensureDir).toHaveBeenCalledTimes(3)
+      // 创建目录：specDir, changes, archive, skill 目录, commands 目录
+      expect(fs.ensureDir).toHaveBeenCalledWith(expect.stringContaining('marchenspec'))
+      expect(fs.ensureDir).toHaveBeenCalledWith(expect.stringContaining('changes'))
+      expect(fs.ensureDir).toHaveBeenCalledWith(expect.stringContaining('archive'))
       // 写入 config.yaml
       expect(fs.writeYaml).toHaveBeenCalledWith(
         expect.stringContaining('config.yaml'),
         expect.objectContaining({ schema: 'spec-driven' }),
       )
-      // 创建 2 个 .gitkeep 文件（changes, archive）
-      expect(fs.writeFile).toHaveBeenCalledTimes(2)
+    })
+
+    it('生成 skill 文件到 .claude/skills/', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize()
+
+      expect(fs.ensureDir).toHaveBeenCalledWith(
+        expect.stringContaining('.claude/skills/marchen-propose'),
+      )
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining('.claude/skills/marchen-propose/SKILL.md'),
+        expect.stringContaining('marchen-propose'),
+      )
+    })
+
+    it('生成 command 文件到 .claude/commands/marchen/', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize()
+
+      expect(fs.ensureDir).toHaveBeenCalledWith(
+        expect.stringContaining('.claude/commands/marchen'),
+      )
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining('.claude/commands/marchen/propose.md'),
+        expect.stringContaining('marchen:propose'),
+      )
+    })
+
+    it('重复 init 覆盖已有 skill 文件', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize()
+      await workspace.initialize()
+
+      // writeFile 被调用两轮，每轮都写入 skill 和 command 文件
+      const skillCalls = vi.mocked(fs.writeFile).mock.calls.filter(
+        ([path]) => typeof path === 'string' && path.includes('SKILL.md'),
+      )
+      expect(skillCalls.length).toBe(2)
     })
   })
 })

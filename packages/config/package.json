@@ -16,8 +16,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown --config tsdown.config.ts",
-    "dev": "tsdown --config tsdown.config.ts --watch",
+    "generate": "tsx scripts/generate-templates.ts",
+    "build": "pnpm generate && tsdown --config tsdown.config.ts",
+    "dev": "pnpm generate && tsdown --config tsdown.config.ts --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run --config vitest.config.ts",

@@ -18,9 +18,10 @@
 
 ```
 src/
-├── index.ts       # 配置接口、默认值、统一导出
-├── schema.ts      # Schema 定义（spec-driven）
-└── templates.ts   # Artifact 模板（proposal, design, tasks）
+├── index.ts         # 配置接口、默认值、统一导出
+├── instructions.ts  # Artifact 指导文本（LLM 填充指引）
+├── schema.ts        # Schema 定义（spec-driven）
+└── templates.ts     # Artifact 模板（proposal, design, tasks）
 ```
 
 ## 核心导出
@@ -31,6 +32,7 @@ src/
 - `DEFAULT_SCHEMA` - 默认 Schema 定义（spec-driven，4 个 artifacts）
 - `ARTIFACT_TEMPLATES` - 制品 ID 到模板内容的映射
 - `PROPOSAL_TEMPLATE` / `DESIGN_TEMPLATE` / `TASKS_TEMPLATE` - 各 artifact 的 Markdown 模板
+- `ARTIFACT_INSTRUCTIONS` - 各 artifact 的 LLM 指导文本（告诉 AI 如何填充）
 
 ## 开发命令
 
