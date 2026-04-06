@@ -9,7 +9,6 @@ import {
   moveDir,
   readFile,
   readYaml,
-  writeFile,
   writeYaml,
 } from '@marchen-spec/fs'
 import { METADATA_FILE_NAME, StateError, ValidationError } from '@marchen-spec/shared'
@@ -77,14 +76,6 @@ export class ChangeManager {
       status: 'open',
     }
     await writeYaml(join(changeDir, METADATA_FILE_NAME), metadata)
-
-    // 根据 schema 定义生成初始 artifact 文件
-    for (const artifact of DEFAULT_SCHEMA.artifacts) {
-      const template = ARTIFACT_TEMPLATES[artifact.id]
-      if (template) {
-        await writeFile(join(changeDir, artifact.generates), template)
-      }
-    }
   }
 
   /**
@@ -289,9 +280,15 @@ export class ChangeManager {
       .filter(a => a.requires.includes(artifactId))
       .map(a => a.id)
 
+    // 读取元数据获取 schema 名称
+    const metadataPath = join(changeDir, METADATA_FILE_NAME)
+    const metadata = await readYaml<ChangeMetadata>(metadataPath)
+
     return {
       changeName: name,
       artifactId,
+      schemaName: metadata.schema,
+      changeDir,
       outputPath: artifactDef.generates,
       template,
       instruction,

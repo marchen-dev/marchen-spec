@@ -119,6 +119,7 @@ tags: [workflow, artifacts]
 - 如果上下文关键信息不清楚，询问用户；但小疑问优先做合理判断，保持节奏
 - 已存在同名变更时必须询问用户，不要覆盖
 - \`instruction\` 是给你的指引，不要把它原样复制到 artifact 文件中
+- 使用 AskUserQuestion 时，选项不超过 4 个；需要更多选项时合并或分步询问
 
 ARGUMENTS: $ARGUMENTS
 `

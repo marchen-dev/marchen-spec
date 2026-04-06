@@ -81,8 +81,8 @@ describe('changeManager.create 创建变更', () => {
     expect(fs.ensureDir).toHaveBeenCalledTimes(2)
     // 写入元数据
     expect(fs.writeYaml).toHaveBeenCalledTimes(1)
-    // 写入 artifact 文件（proposal + design + tasks = 3）
-    expect(fs.writeFile).toHaveBeenCalledTimes(3)
+    // 不再预填 artifact 文件（模板通过 instructions API 传递）
+    expect(fs.writeFile).not.toHaveBeenCalled()
   })
 })
 
@@ -547,11 +547,14 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('my-feature')) return true
       return false
     })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
 
     const result = await manager.getInstructions('my-feature', 'proposal')
 
     expect(result.changeName).toBe('my-feature')
     expect(result.artifactId).toBe('proposal')
+    expect(result.schemaName).toBe('spec-driven')
+    expect(result.changeDir).toBe('/test/root/marchenspec/changes/my-feature')
     expect(result.outputPath).toBe('proposal.md')
     expect(result.template).toBeTruthy()
     expect(result.instruction).toBeTruthy()
@@ -568,6 +571,7 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('proposal.md')) return true
       return false
     })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
       if (path.endsWith('proposal.md')) return proposalContent
       return ''
@@ -590,6 +594,7 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('design.md')) return true
       return false
     })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
       if (path.endsWith('design.md')) return '## 背景\n\n当前应用使用硬编码的亮色样式，需要重构为主题系统支持动态切换。'
       return ''
@@ -614,6 +619,7 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('design.md')) return true
       return false
     })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
     vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
       if (path.endsWith('specs') || path.endsWith('specs/')) return ['auth', 'theme']
       return []

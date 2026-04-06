@@ -6,7 +6,7 @@ import { handleError } from '../utils/error.js'
 /**
  * 注册 new 命令
  *
- * 创建一个新的变更，包含目录结构和初始 artifact 文件
+ * 创建一个新的变更，包含目录结构和元数据
  *
  * @param program - Commander 程序实例
  */

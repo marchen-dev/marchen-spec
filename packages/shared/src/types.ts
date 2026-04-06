@@ -154,6 +154,10 @@ export interface InstructionsResult {
   readonly changeName: string
   /** artifact 标识符 */
   readonly artifactId: string
+  /** schema 名称 */
+  readonly schemaName: string
+  /** 变更目录绝对路径 */
+  readonly changeDir: string
   /** 输出路径（相对于变更目录） */
   readonly outputPath: string
   /** 模板内容 */

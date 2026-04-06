@@ -8,7 +8,7 @@ import { handleError } from '../utils/error.js'
 const STATUS_ICONS: Record<ArtifactContentStatus, string> = {
   filled: '✅',
   empty: '⬜',
-  missing: '❌',
+  missing: '⬜',
   'no-content': '⬜',
 }
 
