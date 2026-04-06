@@ -25,7 +25,8 @@ src/
 │   ├── new.ts            # new 命令
 │   ├── list.ts           # list 命令
 │   ├── archive.ts        # archive 命令
-│   └── verify.ts         # verify 命令
+│   ├── status.ts         # status 命令
+│   └── instructions.ts   # instructions 命令
 └── utils/
     ├── context.ts        # createContext() 工具
     └── error.ts          # handleError() 错误处理
@@ -54,10 +55,16 @@ marchen list          # 列出所有 open 变更
 marchen archive <name>  # 归档变更，移动到 archive/ 并更新 metadata
 ```
 
-### verify 命令
+### status 命令
 ```bash
-marchen verify <name>         # 验证变更的 artifact 完整度和 task 完成情况
-marchen verify <name> --json  # 输出 JSON 格式
+marchen status <name>         # 查看 artifact 内容状态和工作流建议
+marchen status <name> --json  # 输出 JSON 格式（给 Skill 消费）
+```
+
+### instructions 命令
+```bash
+marchen instructions <name> <artifact-id>         # 获取 artifact 创建指令（JSON）
+marchen instructions <name> <artifact-id> --json   # 同上（默认行为）
 ```
 
 ## 添加新命令

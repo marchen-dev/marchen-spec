@@ -16,6 +16,7 @@
 - 2026-04-03: 简化 specs 架构 (去掉 main specs，archive 作为唯一真相)
 - 2026-04-03: archive 命令 (简化版，只移动文件)
 - 2026-04-05: [verify 命令](../openspec/changes/archive/2026-04-05-implement-verify-command/)
+- 2026-04-05: [status + instructions 命令](../openspec/changes/archive/2026-04-05-implement-status-and-instructions/) (废弃 verify，内容感知状态检测)
 
 ## 进行中 🚧
 
@@ -23,22 +24,18 @@
 
 ## 计划中 📋
 
-### Phase 1: CLI 基础设施
+### Phase 1: CLI 基础设施 ✅
 
-为 Skill 层提供 JSON API，是后续一切的基础。
+~~为 Skill 层提供 JSON API，是后续一切的基础。~~
 
-- [ ] status 命令 + instructions 命令
-  - `marchen status <name> [--json]` — artifact 内容状态 + 工作流建议
-  - `marchen instructions <name> <artifact-id> [--json]` — 模板 + 指导 + 依赖
-  - 废弃 verify 命令（被 status 替代）
-  - 内容感知状态检测（empty/filled/missing，不只是文件存在性）
+- [x] status 命令 + instructions 命令
 
 ### Phase 2: Skill 层
 
 CLI 提供 API 后，编写 Claude Code skills 驱动 AI 工作流。每个 skill 是 `.claude/skills/marchen-*/SKILL.md`。
 
 - [ ] marchen:continue — 调 status → 找 ready artifact → 调 instructions → LLM 生成 → 写入
-- [ ] marchen:propose — marchen new + 循环 continue 直到所有 artifact filled
+- [x] marchen:propose — marchen new + 循环 continue 直到所有 artifact filled（含 codegen 基础设施 + init 生成 skill 文件）
 - [ ] marchen:apply — 读 tasks.md，逐个实现 task
 - [ ] marchen:explore — 纯对话模式，思考伙伴
 

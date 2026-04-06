@@ -56,10 +56,11 @@ await workspace.initialize()     // 执行初始化
 ```typescript
 const changes = new ChangeManager(workspace)
 
-await changes.create('my-feature')  // 创建变更
-await changes.archive('my-feature') // 归档变更
-await changes.list()                // 列出所有 open 变更
-await changes.verify('my-feature')  // 验证 artifact 完整度和 task 完成情况
+await changes.create('my-feature')       // 创建变更
+await changes.archive('my-feature')      // 归档变更
+await changes.list()                     // 列出所有 open 变更
+await changes.status('my-feature')       // 查询 artifact 内容状态和工作流建议
+await changes.getInstructions('my-feature', 'proposal')  // 获取 artifact 创建指令
 
 ChangeManager.isValidName('my-feature')  // 静态方法，校验名称
 ```

@@ -35,8 +35,12 @@ src/
 - `ArtifactDefinition` - 制品定义 `{ id, generates, requires }`
 - `SchemaDefinition` - Schema 定义 `{ name, artifacts }`
 - `TaskItem` - 任务条目 `{ description, completed }`
-- `ArtifactStatus` - 制品存在状态 `{ id, exists, capabilities? }`
-- `VerifyResult` - 验证结果 `{ name, artifacts, tasks }`
+- `ArtifactContentStatus` - 制品内容状态 `'empty' | 'filled' | 'missing' | 'no-content'`
+- `ArtifactStatusDetail` - 制品状态详情 `{ id, status, path, capabilities? }`
+- `WorkflowStatus` - 工作流状态 `{ next, ready, blocked }`
+- `StatusResult` - 状态查询结果 `{ name, schema, artifacts, workflow, tasks }`
+- `DependencyInfo` - 依赖信息 `{ id, status, path, content? }`
+- `InstructionsResult` - 指令结果 `{ changeName, artifactId, outputPath, template, instruction, dependencies, unlocks }`
 
 ## 开发命令
 

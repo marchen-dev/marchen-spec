@@ -1,5 +1,6 @@
 import type { PackageBoundary } from '@marchen-spec/shared'
 import { join } from 'node:path'
+import { COMMAND_TEMPLATES, SKILL_TEMPLATES } from '@marchen-spec/config'
 import {
   ensureDir,
   exists,
@@ -85,5 +86,31 @@ export class Workspace {
     // 创建 .gitkeep 占位文件
     await writeFile(join(this.changeDir, '.gitkeep'), '')
     await writeFile(join(this.archiveDir, '.gitkeep'), '')
+
+    // 生成 skill 和 command 文件到 .claude/ 目录
+    await this.generateSkills()
+    await this.generateCommands()
+  }
+
+  /**
+   * 生成 skill 文件到 .claude/skills/ 目录
+   */
+  private async generateSkills(): Promise<void> {
+    for (const template of Object.values(SKILL_TEMPLATES)) {
+      const skillDir = join(this.root, '.claude', 'skills', template.dirName)
+      await ensureDir(skillDir)
+      await writeFile(join(skillDir, 'SKILL.md'), template.content)
+    }
+  }
+
+  /**
+   * 生成 command 文件到 .claude/commands/marchen/ 目录
+   */
+  private async generateCommands(): Promise<void> {
+    const commandsDir = join(this.root, '.claude', 'commands', 'marchen')
+    await ensureDir(commandsDir)
+    for (const template of Object.values(COMMAND_TEMPLATES)) {
+      await writeFile(join(commandsDir, template.fileName), template.content)
+    }
   }
 }

@@ -35,6 +35,7 @@ export function registerInitCommand(program: Command): void {
       // 执行初始化
       await workspace.initialize()
 
+      p.log.success('已生成 .claude/skills/ 和 .claude/commands/ 文件')
       p.outro('MarchenSpec 初始化成功！')
     })
 }
