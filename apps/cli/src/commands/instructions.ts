@@ -18,12 +18,14 @@ export function registerInstructionsCommand(program: Command): void {
     .command('instructions')
     .description('获取 artifact 的创建指令')
     .argument('<name>', '变更名称')
-    .argument('<artifact-id>', 'artifact 标识符 (proposal/specs/design/tasks)')
+    .argument('<artifact-id>', 'artifact 标识符 (proposal/specs/design/tasks/apply)')
     .option('--json', '输出 JSON 格式（默认行为）')
     .action(async (name: string, artifactId: string) => {
       try {
         const { changes } = createContext()
-        const result = await changes.getInstructions(name, artifactId)
+        const result = artifactId === 'apply'
+          ? await changes.getApplyInstructions(name)
+          : await changes.getInstructions(name, artifactId)
         console.log(JSON.stringify(result, null, 2))
       } catch (error) {
         handleError(error)

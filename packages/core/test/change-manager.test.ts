@@ -558,8 +558,10 @@ describe('changeManager.getInstructions', () => {
     expect(result.outputPath).toBe('proposal.md')
     expect(result.template).toBeTruthy()
     expect(result.instruction).toBeTruthy()
-    expect(result.dependencies).toEqual([])
+    expect(result.context).toEqual([])
     expect(result.unlocks).toEqual(['specs', 'design'])
+    expect(result.state).toBeNull()
+    expect(result.progress).toBeNull()
   })
 
   it('specs 指令: 依赖 proposal, unlocks tasks', async () => {
@@ -579,10 +581,10 @@ describe('changeManager.getInstructions', () => {
 
     const result = await manager.getInstructions('my-feature', 'specs')
 
-    expect(result.dependencies).toHaveLength(1)
-    expect(result.dependencies[0]!.id).toBe('proposal')
-    expect(result.dependencies[0]!.status).toBe('filled')
-    expect(result.dependencies[0]!.content).toBe(proposalContent)
+    expect(result.context).toHaveLength(1)
+    expect(result.context[0]!.id).toBe('proposal')
+    expect(result.context[0]!.status).toBe('filled')
+    expect(result.context[0]!.content).toBe(proposalContent)
     expect(result.unlocks).toEqual(['tasks'])
   })
 
@@ -603,9 +605,9 @@ describe('changeManager.getInstructions', () => {
 
     const result = await manager.getInstructions('my-feature', 'tasks')
 
-    expect(result.dependencies).toHaveLength(2)
-    expect(result.dependencies[0]!.id).toBe('specs')
-    expect(result.dependencies[1]!.id).toBe('design')
+    expect(result.context).toHaveLength(2)
+    expect(result.context[0]!.id).toBe('specs')
+    expect(result.context[1]!.id).toBe('design')
     expect(result.unlocks).toEqual([])
   })
 
@@ -633,11 +635,111 @@ describe('changeManager.getInstructions', () => {
 
     const result = await manager.getInstructions('my-feature', 'tasks')
 
-    const specsDep = result.dependencies.find(d => d.id === 'specs')
+    const specsDep = result.context.find(d => d.id === 'specs')
     expect(specsDep?.status).toBe('filled')
     expect(specsDep?.content).toContain('--- specs/auth/spec.md ---')
     expect(specsDep?.content).toContain('系统 SHALL 支持用户通过邮箱和密码进行认证登录')
     expect(specsDep?.content).toContain('--- specs/theme/spec.md ---')
     expect(specsDep?.content).toContain('系统 SHALL 支持暗色主题和亮色主题之间的切换')
+  })
+})
+
+describe('changeManager.getApplyInstructions apply 指令', () => {
+  let workspace: Workspace
+  let manager: ChangeManager
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    workspace = new Workspace('/test/root')
+    manager = new ChangeManager(workspace)
+  })
+
+  it('tasks 未填充时 state 为 blocked', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      return false
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+
+    const result = await manager.getApplyInstructions('my-feature')
+
+    expect(result.artifactId).toBe('apply')
+    expect(result.state).toBe('blocked')
+    expect(result.progress).toEqual({ total: 0, completed: 0, remaining: 0 })
+    expect(result.outputPath).toBeNull()
+    expect(result.template).toBeNull()
+    expect(result.unlocks).toBeNull()
+  })
+
+  it('所有任务完成时 state 为 all_done', async () => {
+    const tasksContent = '## 任务\n\n- [x] 1.1 做 A\n- [x] 1.2 做 B\n- [x] 2.1 做 C'
+
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('tasks.md')) return true
+      return false
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.endsWith('tasks.md')) return tasksContent
+      return ''
+    })
+
+    const result = await manager.getApplyInstructions('my-feature')
+
+    expect(result.state).toBe('all_done')
+    expect(result.progress).toEqual({ total: 3, completed: 3, remaining: 0 })
+  })
+
+  it('有未完成任务时 state 为 ready', async () => {
+    const tasksContent = '## 任务\n\n- [x] 1.1 做 A\n- [ ] 1.2 做 B\n- [ ] 2.1 做 C'
+
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('tasks.md')) return true
+      return false
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.endsWith('tasks.md')) return tasksContent
+      return ''
+    })
+
+    const result = await manager.getApplyInstructions('my-feature')
+
+    expect(result.state).toBe('ready')
+    expect(result.progress).toEqual({ total: 3, completed: 1, remaining: 2 })
+  })
+
+  it('收集所有 artifact 作为 context', async () => {
+    const proposalContent = '## 动机\n\n当前应用只有亮色主题，用户在暗光环境下使用体验差，需要暗色模式支持。'
+    const tasksContent = '## 任务\n\n- [ ] 1.1 实现暗色主题的基础样式变量\n- [ ] 1.2 添加主题切换按钮组件'
+
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('my-feature')) return true
+      if (path.endsWith('proposal.md')) return true
+      if (path.endsWith('tasks.md')) return true
+      return false
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
+      if (path.endsWith('proposal.md')) return proposalContent
+      if (path.endsWith('tasks.md')) return tasksContent
+      return ''
+    })
+
+    const result = await manager.getApplyInstructions('my-feature')
+
+    expect(result.context.length).toBeGreaterThanOrEqual(2)
+    const proposal = result.context.find(c => c.id === 'proposal')
+    expect(proposal?.status).toBe('filled')
+    expect(proposal?.content).toBe(proposalContent)
+    const tasks = result.context.find(c => c.id === 'tasks')
+    expect(tasks?.status).toBe('filled')
+    expect(tasks?.content).toBe(tasksContent)
   })
 })

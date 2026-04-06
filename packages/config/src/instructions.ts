@@ -29,4 +29,10 @@ export const ARTIFACT_INSTRUCTIONS: Record<string, string> = {
 - 每个任务用 checkbox 格式：- [ ] X.Y 描述
 - 任务粒度要小到一个会话内能完成
 - 按依赖顺序排列（先做的在前）`,
+
+  apply: `按 tasks.md 逐个实现任务，完成后勾选 checkbox。
+- 每完成一个任务立即将 - [ ] 改为 - [x]
+- 改动最小化，只做任务要求的事
+- 不确定就暂停问，不要猜
+- 如果发现设计问题，暂停并建议更新 artifact`,
 }

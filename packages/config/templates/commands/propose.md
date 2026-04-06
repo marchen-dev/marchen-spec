@@ -68,7 +68,7 @@ tags: [workflow, artifacts]
       - `template`：artifact 的 markdown 骨架结构，用它作为输出文件的框架
       - `instruction`：如何填充该 artifact 的指导文本
       - `outputPath`：写入路径（相对于变更目录）
-      - `dependencies`：依赖 artifact 的信息数组，每项包含 `id`、`status`、`content`（已填充的内容直接在这里，不需要额外读文件）
+      - `context`：上下文 artifact 的信息数组，每项包含 `id`、`status`、`content`（已填充的内容直接在这里，不需要额外读文件）
       - `unlocks`：完成此 artifact 后解锁的 artifact 列表
 
    c. **创建 artifact**
@@ -76,13 +76,13 @@ tags: [workflow, artifacts]
       根据 artifact 类型处理：
 
       **普通 artifact（proposal / design / tasks）：**
-      - 读取 `dependencies` 中 `status` 为 `filled` 的 `content` 作为上下文
+      - 读取 `context` 中 `status` 为 `filled` 的 `content` 作为上下文
       - 按 `instruction` 指引 + `template` 结构生成内容
       - 写入 `marchenspec/changes/<name>/<outputPath>`
       - 写入后验证文件存在
 
       **specs（目录型 artifact，outputPath 为 `specs/`）：**
-      - 读取 proposal 内容（在 `dependencies` 中，`id` 为 `proposal` 的 `content`）
+      - 读取 proposal 内容（在 `context` 中，`id` 为 `proposal` 的 `content`）
       - 从 proposal 的"能力"章节提取能力列表（kebab-case 名称）
       - 为每个能力：
         - 创建目录 `marchenspec/changes/<name>/specs/<capability>/`

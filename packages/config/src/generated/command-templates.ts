@@ -1,5 +1,90 @@
 // 此文件由 scripts/generate-templates.ts 自动生成，请勿手动修改
 
+export const COMMAND_APPLY = `---
+name: "Marchen: Apply"
+description: 按变更的 tasks.md 逐个实现任务
+category: Workflow
+tags: [workflow, implementation]
+---
+
+按变更的 tasks.md 逐个实现任务，完成后勾选 checkbox。
+
+---
+
+**输入**：\`/marchen:apply\` 后面跟变更名称，或省略自动推断。
+
+**流程**
+
+1. **选择变更**
+
+   有名称就用，没有则：
+   - 从对话上下文推断
+   - 只有一个 open 变更时自动选择
+   - 多个变更时 \`marchen list --json\` + **AskUserQuestion** 让用户选
+
+   显示："使用变更: \`<name>\`"
+
+2. **获取实现指令**
+
+   \`\`\`bash
+   marchen instructions <name> apply --json
+   \`\`\`
+
+   返回 JSON 包含：
+   - \`state\`：\`"ready"\` / \`"blocked"\` / \`"all_done"\`
+   - \`progress\`：\`{ total, completed, remaining }\`
+   - \`context\`：所有 artifact 的信息数组，每项包含 \`id\`、\`status\`、\`path\`、\`content\`
+   - \`instruction\`：实现指引
+   - \`changeDir\`：变更目录绝对路径
+
+   根据 \`state\` 处理：
+   - \`"blocked"\` → 提示先完成 artifacts（\`/marchen:propose\`）
+   - \`"all_done"\` → 提示归档（\`/marchen:archive\`）
+   - \`"ready"\` → 继续
+
+3. **显示进度**
+
+   从返回的 JSON 读取：
+   - \`schemaName\`：当前 schema
+   - \`progress\`：N/M 完成
+   - \`context\` 中 \`id: "tasks"\` 的 \`content\`：剩余任务概览
+
+4. **逐个实现任务**
+
+   从 \`context\` 中读取所有 artifact 内容作为上下文。
+
+   对每个未完成任务：
+   - 显示 "任务 N/M: <描述>"
+   - 实现代码改动
+   - 在 tasks.md 中勾选：\`- [ ]\` → \`- [x]\`
+     文件路径：\`<changeDir>/tasks.md\`
+   - 继续下一个
+
+   **暂停条件：**
+   - 任务不清晰 → 询问用户
+   - 发现设计问题 → 建议更新 artifact
+   - 遇到错误或阻塞 → 报告并等待
+   - 用户中断
+
+5. **显示结果**
+
+   - 本次完成的任务
+   - 总进度
+   - 全部完成 → 建议 \`/marchen:archive\`
+   - 暂停 → 说明原因
+
+**护栏**
+
+- 实现前必须读 context 中的 artifact 内容
+- 每完成一个任务立即勾选 checkbox，不要攒着
+- 改动最小化，只做任务要求的事
+- 不确定就暂停问，不要猜
+- 使用 AskUserQuestion 时，选项不超过 4 个
+- \`instruction\` 是给你的指引，不要原样复制到代码注释中
+
+ARGUMENTS: $ARGUMENTS
+`
+
 export const COMMAND_PROPOSE = `---
 name: "Marchen: Propose"
 description: 提出新变更，创建并填充所有 artifact
@@ -70,7 +155,7 @@ tags: [workflow, artifacts]
       - \`template\`：artifact 的 markdown 骨架结构，用它作为输出文件的框架
       - \`instruction\`：如何填充该 artifact 的指导文本
       - \`outputPath\`：写入路径（相对于变更目录）
-      - \`dependencies\`：依赖 artifact 的信息数组，每项包含 \`id\`、\`status\`、\`content\`（已填充的内容直接在这里，不需要额外读文件）
+      - \`context\`：上下文 artifact 的信息数组，每项包含 \`id\`、\`status\`、\`content\`（已填充的内容直接在这里，不需要额外读文件）
       - \`unlocks\`：完成此 artifact 后解锁的 artifact 列表
 
    c. **创建 artifact**
@@ -78,13 +163,13 @@ tags: [workflow, artifacts]
       根据 artifact 类型处理：
 
       **普通 artifact（proposal / design / tasks）：**
-      - 读取 \`dependencies\` 中 \`status\` 为 \`filled\` 的 \`content\` 作为上下文
+      - 读取 \`context\` 中 \`status\` 为 \`filled\` 的 \`content\` 作为上下文
       - 按 \`instruction\` 指引 + \`template\` 结构生成内容
       - 写入 \`marchenspec/changes/<name>/<outputPath>\`
       - 写入后验证文件存在
 
       **specs（目录型 artifact，outputPath 为 \`specs/\`）：**
-      - 读取 proposal 内容（在 \`dependencies\` 中，\`id\` 为 \`proposal\` 的 \`content\`）
+      - 读取 proposal 内容（在 \`context\` 中，\`id\` 为 \`proposal\` 的 \`content\`）
       - 从 proposal 的"能力"章节提取能力列表（kebab-case 名称）
       - 为每个能力：
         - 创建目录 \`marchenspec/changes/<name>/specs/<capability>/\`
@@ -132,5 +217,6 @@ export interface CommandTemplate {
 
 /** 所有 command 模板 */
 export const COMMAND_TEMPLATES: Record<string, CommandTemplate> = {
+  apply: { fileName: 'apply.md', content: COMMAND_APPLY },
   propose: { fileName: 'propose.md', content: COMMAND_PROPOSE },
 }

@@ -133,9 +133,9 @@ export interface StatusResult {
 // ============================================================
 
 /**
- * 依赖 artifact 的信息
+ * 上下文 artifact 的信息
  */
-export interface DependencyInfo {
+export interface ContextInfo {
   /** artifact 标识符 */
   readonly id: string
   /** 内容状态 */
@@ -144,6 +144,16 @@ export interface DependencyInfo {
   readonly path: string
   /** 文件内容，filled 时为实际内容，否则为 null；specs 目录自动拼接 */
   readonly content: string | null
+}
+
+/** apply 阶段的状态 */
+export type ApplyState = 'ready' | 'blocked' | 'all_done'
+
+/** apply 阶段的任务进度 */
+export interface ApplyProgress {
+  readonly total: number
+  readonly completed: number
+  readonly remaining: number
 }
 
 /**
@@ -158,14 +168,18 @@ export interface InstructionsResult {
   readonly schemaName: string
   /** 变更目录绝对路径 */
   readonly changeDir: string
-  /** 输出路径（相对于变更目录） */
-  readonly outputPath: string
-  /** 模板内容 */
-  readonly template: string
+  /** 输出路径（相对于变更目录），apply 时为 null */
+  readonly outputPath: string | null
+  /** 模板内容，apply 时为 null */
+  readonly template: string | null
   /** 给 LLM 的指导文本 */
   readonly instruction: string
-  /** 依赖 artifacts 的信息 */
-  readonly dependencies: readonly DependencyInfo[]
-  /** 完成后解锁的 artifact 列表 */
-  readonly unlocks: readonly string[]
+  /** 上下文 artifacts 的信息 */
+  readonly context: readonly ContextInfo[]
+  /** 完成后解锁的 artifact 列表，apply 时为 null */
+  readonly unlocks: readonly string[] | null
+  /** apply 阶段的状态，创建 artifact 时为 null */
+  readonly state: ApplyState | null
+  /** apply 阶段的任务进度，创建 artifact 时为 null */
+  readonly progress: ApplyProgress | null
 }

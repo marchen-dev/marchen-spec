@@ -97,7 +97,7 @@ describe('workspace', () => {
       const skillCalls = vi.mocked(fs.writeFile).mock.calls.filter(
         ([path]) => typeof path === 'string' && path.includes('SKILL.md'),
       )
-      expect(skillCalls.length).toBe(2)
+      expect(skillCalls.length).toBe(4)
     })
   })
 })

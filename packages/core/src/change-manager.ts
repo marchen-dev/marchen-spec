@@ -1,4 +1,4 @@
-import type { ArtifactContentStatus, ArtifactStatusDetail, ChangeMetadata, DependencyInfo, InstructionsResult, StatusResult, WorkflowStatus } from '@marchen-spec/shared'
+import type { ApplyProgress, ApplyState, ArtifactContentStatus, ArtifactStatusDetail, ChangeMetadata, ContextInfo, InstructionsResult, StatusResult, TaskItem, WorkflowStatus } from '@marchen-spec/shared'
 import type { Workspace } from './workspace.js'
 import { join } from 'node:path'
 import { ARTIFACT_INSTRUCTIONS, ARTIFACT_TEMPLATES, DEFAULT_SCHEMA } from '@marchen-spec/config'
@@ -206,13 +206,7 @@ export class ChangeManager {
     if (tasksArtifact && tasksArtifact.status === 'filled') {
       const tasksPath = join(changeDir, 'tasks.md')
       const content = await readFile(tasksPath)
-      // 匹配 markdown checkbox 格式：- [ ] 或 - [x]
-      const items = [...content.matchAll(/^- \[([ x])\] (.+)$/gm)].map(
-        match => ({
-          description: match[2]!,
-          completed: match[1] === 'x',
-        }),
-      )
+      const items = this.parseTaskItems(content)
       tasks = {
         total: items.length,
         completed: items.filter(item => item.completed).length,
@@ -253,9 +247,9 @@ export class ChangeManager {
     const template = ARTIFACT_TEMPLATES[artifactId] ?? ''
     const instruction = ARTIFACT_INSTRUCTIONS[artifactId] ?? ''
 
-    // 构建依赖信息：读取每个依赖 artifact 的状态和内容
+    // 构建上下文信息：读取每个依赖 artifact 的状态和内容
     // specs 目录需要拼接所有 spec 文件内容；单文件直接读取
-    const dependencies: DependencyInfo[] = []
+    const context: ContextInfo[] = []
     for (const depId of artifactDef.requires) {
       const depDef = DEFAULT_SCHEMA.artifacts.find(a => a.id === depId)
       if (!depDef) continue
@@ -267,11 +261,11 @@ export class ChangeManager {
         const content = specsResult.status === 'filled'
           ? await this.readSpecsContent(depPath)
           : null
-        dependencies.push({ id: depId, status: specsResult.status, path: depDef.generates, content })
+        context.push({ id: depId, status: specsResult.status, path: depDef.generates, content })
       } else {
         const status = await this.detectContentStatus(depPath)
         const content = status === 'filled' ? await readFile(depPath) : null
-        dependencies.push({ id: depId, status, path: depDef.generates, content })
+        context.push({ id: depId, status, path: depDef.generates, content })
       }
     }
 
@@ -292,8 +286,10 @@ export class ChangeManager {
       outputPath: artifactDef.generates,
       template,
       instruction,
-      dependencies,
+      context,
       unlocks,
+      state: null,
+      progress: null,
     }
   }
 
@@ -436,6 +432,92 @@ export class ChangeManager {
     }
 
     return { next: ready[0] ?? null, ready, blocked }
+  }
+
+  /**
+   * 解析 tasks.md 内容中的 checkbox 条目
+   */
+  private parseTaskItems(content: string): TaskItem[] {
+    return [...content.matchAll(/^- \[([ x])\] (.+)$/gm)].map(match => ({
+      description: match[2]!,
+      completed: match[1] === 'x',
+    }))
+  }
+
+  /**
+   * 从 tasks.md 内容计算任务进度
+   */
+  private parseTaskProgress(content: string): ApplyProgress {
+    const items = this.parseTaskItems(content)
+    const completed = items.filter(i => i.completed).length
+    return { total: items.length, completed, remaining: items.length - completed }
+  }
+
+  /**
+   * 获取 apply 阶段的指令
+   *
+   * 收集所有 artifact 的内容作为上下文，计算任务进度和状态。
+   *
+   * @param name - 变更名称
+   * @returns 指令结果（state/progress 有值，outputPath/template/unlocks 为 null）
+   */
+  async getApplyInstructions(name: string): Promise<InstructionsResult> {
+    await this.ensureInitialized()
+
+    const changeDir = join(this.workspace.changeDir, name)
+    if (!(await exists(changeDir))) {
+      throw new ValidationError(`变更 "${name}" 不存在`)
+    }
+
+    const metadataPath = join(changeDir, METADATA_FILE_NAME)
+    const metadata = await readYaml<ChangeMetadata>(metadataPath)
+
+    // 收集所有 artifact 的上下文
+    const context: ContextInfo[] = []
+    for (const artifact of DEFAULT_SCHEMA.artifacts) {
+      const artifactPath = join(changeDir, artifact.generates)
+
+      if (artifact.id === 'specs') {
+        const specsResult = await this.detectSpecsStatus(artifactPath)
+        const content = specsResult.status === 'filled'
+          ? await this.readSpecsContent(artifactPath)
+          : null
+        context.push({ id: artifact.id, status: specsResult.status, path: artifact.generates, content })
+      } else {
+        const status = await this.detectContentStatus(artifactPath)
+        const content = status === 'filled' ? await readFile(artifactPath) : null
+        context.push({ id: artifact.id, status, path: artifact.generates, content })
+      }
+    }
+
+    // 计算 state 和 progress
+    const tasksContext = context.find(c => c.id === 'tasks')
+    let state: ApplyState
+    let progress: ApplyProgress
+
+    if (!tasksContext || !tasksContext.content || tasksContext.status !== 'filled') {
+      state = 'blocked'
+      progress = { total: 0, completed: 0, remaining: 0 }
+    } else {
+      progress = this.parseTaskProgress(tasksContext.content)
+      state = progress.remaining === 0 ? 'all_done' : 'ready'
+    }
+
+    const instruction = ARTIFACT_INSTRUCTIONS.apply ?? ''
+
+    return {
+      changeName: name,
+      artifactId: 'apply',
+      schemaName: metadata.schema,
+      changeDir,
+      outputPath: null,
+      template: null,
+      instruction,
+      context,
+      unlocks: null,
+      state,
+      progress,
+    }
   }
 
   /**

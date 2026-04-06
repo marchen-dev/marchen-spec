@@ -61,6 +61,7 @@ await changes.archive('my-feature')      // 归档变更
 await changes.list()                     // 列出所有 open 变更
 await changes.status('my-feature')       // 查询 artifact 内容状态和工作流建议
 await changes.getInstructions('my-feature', 'proposal')  // 获取 artifact 创建指令
+await changes.getApplyInstructions('my-feature')         // 获取 apply 实现指令（state + progress + context）
 
 ChangeManager.isValidName('my-feature')  // 静态方法，校验名称
 ```

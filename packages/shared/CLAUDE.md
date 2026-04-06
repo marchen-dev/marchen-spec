@@ -39,8 +39,10 @@ src/
 - `ArtifactStatusDetail` - 制品状态详情 `{ id, status, path, capabilities? }`
 - `WorkflowStatus` - 工作流状态 `{ next, ready, blocked }`
 - `StatusResult` - 状态查询结果 `{ name, schema, artifacts, workflow, tasks }`
-- `DependencyInfo` - 依赖信息 `{ id, status, path, content? }`
-- `InstructionsResult` - 指令结果 `{ changeName, artifactId, outputPath, template, instruction, dependencies, unlocks }`
+- `ContextInfo` - 上下文 artifact 信息 `{ id, status, path, content? }`
+- `ApplyState` - apply 阶段状态 `'ready' | 'blocked' | 'all_done'`
+- `ApplyProgress` - apply 阶段进度 `{ total, completed, remaining }`
+- `InstructionsResult` - 指令结果 `{ changeName, artifactId, outputPath?, template?, instruction, context, unlocks?, state?, progress? }`
 
 ## 开发命令
 

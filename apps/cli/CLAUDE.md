@@ -65,6 +65,7 @@ marchen status <name> --json  # 输出 JSON 格式（给 Skill 消费）
 ```bash
 marchen instructions <name> <artifact-id>         # 获取 artifact 创建指令（JSON）
 marchen instructions <name> <artifact-id> --json   # 同上（默认行为）
+marchen instructions <name> apply --json           # 获取 apply 实现指令（state + progress + context）
 ```
 
 ## 添加新命令
