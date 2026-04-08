@@ -1,6 +1,7 @@
 import type { ArtifactContentStatus } from '@marchen-spec/shared'
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
+import pc from 'picocolors'
 import { createContext } from '../utils/context.js'
 import { handleError } from '../utils/error.js'
 
@@ -10,6 +11,31 @@ const STATUS_ICONS: Record<ArtifactContentStatus, string> = {
   empty: '⬜',
   missing: '⬜',
   'no-content': '⬜',
+}
+
+/** 为状态文字上色 */
+function colorizeStatus(status: string): string {
+  switch (status) {
+    case 'filled':
+      return pc.green(status)
+    case 'empty':
+      return pc.yellow(status)
+    case 'blocked':
+      return pc.red(status)
+    default:
+      return pc.dim(status)
+  }
+}
+
+/** 为进度数字上色，附带进度条：全部完成绿色、部分完成黄色、零完成灰色 */
+function colorizeProgress(completed: number, total: number): string {
+  const barWidth = 10
+  const filled = total > 0 ? Math.round((completed / total) * barWidth) : 0
+  const bar = '█'.repeat(filled) + '░'.repeat(barWidth - filled)
+  const text = `[${bar}] ${completed}/${total} 完成`
+  if (completed === total) return pc.green(text)
+  if (completed > 0) return pc.yellow(text)
+  return pc.dim(text)
 }
 
 /**
@@ -43,8 +69,8 @@ export function registerStatusCommand(program: Command): void {
 
         p.intro('MarchenSpec CLI')
 
-        // 展示变更基本信息
-        p.log.info(`变更: ${result.name}\nSchema: ${result.schema}`)
+        // 展示变更基本信息（名称加粗 + schema 灰色，一行展示）
+        p.log.info(`${pc.bold(result.name)} · ${pc.dim(result.schema)}`)
 
         // 构建 artifact 状态列表，每行格式：<图标> <名称> <状态> [附加信息]
         // 示例输出：
@@ -56,7 +82,8 @@ export function registerStatusCommand(program: Command): void {
           // 被阻塞的 artifact 用 🔒 图标，否则根据内容状态选择图标
           const isBlocked = result.workflow.blocked.includes(a.id)
           const icon = isBlocked ? '🔒' : STATUS_ICONS[a.status]
-          let line = `${icon} ${a.id.padEnd(12)} ${a.status}`
+          const statusText = isBlocked ? 'blocked' : a.status
+          let line = `${icon} ${a.id.padEnd(12)} ${colorizeStatus(statusText)}`
 
           // specs 类型额外展示 capability 数量
           if (a.capabilities) {
@@ -79,16 +106,20 @@ export function registerStatusCommand(program: Command): void {
         })
         p.log.info(`Artifacts\n${artifactLines.join('\n')}`)
 
-        // 展示 task 完成进度（仅当 tasks.md 有实质内容时）
+        // 展示 Artifacts + Tasks 总进度汇总
+        const filledCount = result.artifacts.filter(
+          (a) => a.status === 'filled',
+        ).length
+        const totalArtifacts = result.artifacts.length
+        let progressLine = `Artifacts: ${colorizeProgress(filledCount, totalArtifacts)}`
         if (result.tasks) {
-          p.log.info(
-            `Tasks: ${result.tasks.completed}/${result.tasks.total} 完成`,
-          )
+          progressLine += `\nTasks:     ${colorizeProgress(result.tasks.completed, result.tasks.total)}`
         }
+        p.log.info(progressLine)
 
         // 展示下一步建议，引导用户继续工作流
         if (result.workflow.next) {
-          p.outro(`下一步: ${result.workflow.next}`)
+          p.outro(`下一步: ${pc.cyan(result.workflow.next)}`)
         } else {
           p.outro('所有 artifact 已就绪')
         }
