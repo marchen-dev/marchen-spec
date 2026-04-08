@@ -29,12 +29,18 @@ export function registerListCommand(program: Command): void {
   program
     .command('list')
     .description('列出所有 open 状态的变更')
-    .action(async () => {
-      p.intro('MarchenSpec CLI')
-
+    .option('--json', '输出 JSON 格式')
+    .action(async (options: { json?: boolean }) => {
       try {
         const { changes: changeManager } = createContext()
         const changes = await changeManager.list()
+
+        if (options.json) {
+          console.log(JSON.stringify(changes, null, 2))
+          return
+        }
+
+        p.intro('MarchenSpec CLI')
 
         if (changes.length === 0) {
           p.log.info('暂无 open 状态的变更')
