@@ -38,7 +38,11 @@ export class Workspace {
     { name: '@marchen-spec/fs', dependsOn: ['@marchen-spec/shared'] },
     {
       name: '@marchen-spec/core',
-      dependsOn: ['@marchen-spec/config', '@marchen-spec/fs', '@marchen-spec/shared'],
+      dependsOn: [
+        '@marchen-spec/config',
+        '@marchen-spec/fs',
+        '@marchen-spec/shared',
+      ],
     },
   ]
 

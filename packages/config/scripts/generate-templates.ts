@@ -38,16 +38,17 @@ function toSkillDirName(fileName: string): string {
 }
 
 /** 读取目录下所有 .md 文件 */
-function readMdFiles(dir: string): Array<{ fileName: string, content: string }> {
+function readMdFiles(
+  dir: string,
+): Array<{ fileName: string; content: string }> {
   try {
     return readdirSync(dir)
-      .filter(f => f.endsWith('.md'))
-      .map(fileName => ({
+      .filter((f) => f.endsWith('.md'))
+      .map((fileName) => ({
         fileName,
         content: readFileSync(join(dir, fileName), 'utf-8'),
       }))
-  }
-  catch {
+  } catch {
     return []
   }
 }
@@ -64,7 +65,9 @@ const skillLines = [
 
 for (const { fileName, content } of skills) {
   const constName = `SKILL_${toConstName(fileName)}`
-  skillLines.push(`export const ${constName} = \`${escapeTemplateString(content)}\``)
+  skillLines.push(
+    `export const ${constName} = \`${escapeTemplateString(content)}\``,
+  )
   skillLines.push('')
 }
 
@@ -75,7 +78,9 @@ skillLines.push('  readonly content: string')
 skillLines.push('}')
 skillLines.push('')
 skillLines.push('/** 所有 skill 模板 */')
-skillLines.push('export const SKILL_TEMPLATES: Record<string, SkillTemplate> = {')
+skillLines.push(
+  'export const SKILL_TEMPLATES: Record<string, SkillTemplate> = {',
+)
 for (const { fileName } of skills) {
   const key = toKey(fileName)
   const constName = `SKILL_${toConstName(fileName)}`
@@ -96,7 +101,9 @@ const cmdLines = [
 
 for (const { fileName, content } of commands) {
   const constName = `COMMAND_${toConstName(fileName)}`
-  cmdLines.push(`export const ${constName} = \`${escapeTemplateString(content)}\``)
+  cmdLines.push(
+    `export const ${constName} = \`${escapeTemplateString(content)}\``,
+  )
   cmdLines.push('')
 }
 
@@ -107,7 +114,9 @@ cmdLines.push('  readonly content: string')
 cmdLines.push('}')
 cmdLines.push('')
 cmdLines.push('/** 所有 command 模板 */')
-cmdLines.push('export const COMMAND_TEMPLATES: Record<string, CommandTemplate> = {')
+cmdLines.push(
+  'export const COMMAND_TEMPLATES: Record<string, CommandTemplate> = {',
+)
 for (const { fileName } of commands) {
   const key = toKey(fileName)
   const constName = `COMMAND_${toConstName(fileName)}`
@@ -118,4 +127,6 @@ cmdLines.push('')
 
 writeFileSync(join(generatedDir, 'command-templates.ts'), cmdLines.join('\n'))
 
-console.log(`Generated ${skills.length} skill template(s), ${commands.length} command template(s)`)
+console.log(
+  `Generated ${skills.length} skill template(s), ${commands.length} command template(s)`,
+)

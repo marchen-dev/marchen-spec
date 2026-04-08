@@ -1,7 +1,22 @@
-import type { ApplyProgress, ApplyState, ArtifactContentStatus, ArtifactStatusDetail, ChangeMetadata, ContextInfo, InstructionsResult, StatusResult, TaskItem, WorkflowStatus } from '@marchen-spec/shared'
+import type {
+  ApplyProgress,
+  ApplyState,
+  ArtifactContentStatus,
+  ArtifactStatusDetail,
+  ChangeMetadata,
+  ContextInfo,
+  InstructionsResult,
+  StatusResult,
+  TaskItem,
+  WorkflowStatus,
+} from '@marchen-spec/shared'
 import type { Workspace } from './workspace.js'
 import { join } from 'node:path'
-import { ARTIFACT_INSTRUCTIONS, ARTIFACT_TEMPLATES, DEFAULT_SCHEMA } from '@marchen-spec/config'
+import {
+  ARTIFACT_INSTRUCTIONS,
+  ARTIFACT_TEMPLATES,
+  DEFAULT_SCHEMA,
+} from '@marchen-spec/config'
 import {
   ensureDir,
   exists,
@@ -11,7 +26,11 @@ import {
   readYaml,
   writeYaml,
 } from '@marchen-spec/fs'
-import { METADATA_FILE_NAME, StateError, ValidationError } from '@marchen-spec/shared'
+import {
+  METADATA_FILE_NAME,
+  StateError,
+  ValidationError,
+} from '@marchen-spec/shared'
 
 /** kebab-case 校验正则 */
 const KEBAB_CASE_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -107,10 +126,7 @@ export class ChangeManager {
 
     // 移动到 archive 目录
     const datePrefix = now.toISOString().slice(0, 10)
-    const archiveDir = join(
-      this.workspace.archiveDir,
-      `${datePrefix}-${name}`,
-    )
+    const archiveDir = join(this.workspace.archiveDir, `${datePrefix}-${name}`)
     await moveDir(changeDir, archiveDir)
   }
 
@@ -196,12 +212,12 @@ export class ChangeManager {
     }
 
     // 根据各 artifact 的内容状态，计算工作流建议（哪些可以开始、哪些被阻塞）
-    const statusMap = new Map(artifacts.map(a => [a.id, a.status]))
+    const statusMap = new Map(artifacts.map((a) => [a.id, a.status]))
     const workflow = this.computeWorkflow(statusMap)
 
     // tasks 进度独立于 artifact 状态：只要 tasks.md 有实质内容就解析 checkbox
     // 这样 artifact status 只反映"有没有内容"，进度信息放在 tasks 字段
-    const tasksArtifact = artifacts.find(a => a.id === 'tasks')
+    const tasksArtifact = artifacts.find((a) => a.id === 'tasks')
     let tasks: StatusResult['tasks'] = null
     if (tasksArtifact && tasksArtifact.status === 'filled') {
       const tasksPath = join(changeDir, 'tasks.md')
@@ -209,7 +225,7 @@ export class ChangeManager {
       const items = this.parseTaskItems(content)
       tasks = {
         total: items.length,
-        completed: items.filter(item => item.completed).length,
+        completed: items.filter((item) => item.completed).length,
         items,
       }
     }
@@ -227,7 +243,10 @@ export class ChangeManager {
    * @returns 指令结果
    * @throws {MarchenSpecError} 未初始化、变更不存在或 artifact 不存在时抛出
    */
-  async getInstructions(name: string, artifactId: string): Promise<InstructionsResult> {
+  async getInstructions(
+    name: string,
+    artifactId: string,
+  ): Promise<InstructionsResult> {
     await this.ensureInitialized()
 
     const changeDir = join(this.workspace.changeDir, name)
@@ -236,10 +255,12 @@ export class ChangeManager {
     }
 
     // 查找 artifact 定义，校验 artifactId 合法性
-    const artifactDef = DEFAULT_SCHEMA.artifacts.find(a => a.id === artifactId)
+    const artifactDef = DEFAULT_SCHEMA.artifacts.find(
+      (a) => a.id === artifactId,
+    )
     if (!artifactDef) {
       throw new ValidationError(
-        `Artifact "${artifactId}" 不存在，可用的 artifact: ${DEFAULT_SCHEMA.artifacts.map(a => a.id).join(', ')}`,
+        `Artifact "${artifactId}" 不存在，可用的 artifact: ${DEFAULT_SCHEMA.artifacts.map((a) => a.id).join(', ')}`,
       )
     }
 
@@ -251,17 +272,23 @@ export class ChangeManager {
     // specs 目录需要拼接所有 spec 文件内容；单文件直接读取
     const context: ContextInfo[] = []
     for (const depId of artifactDef.requires) {
-      const depDef = DEFAULT_SCHEMA.artifacts.find(a => a.id === depId)
+      const depDef = DEFAULT_SCHEMA.artifacts.find((a) => a.id === depId)
       if (!depDef) continue
 
       const depPath = join(changeDir, depDef.generates)
 
       if (depId === 'specs') {
         const specsResult = await this.detectSpecsStatus(depPath)
-        const content = specsResult.status === 'filled'
-          ? await this.readSpecsContent(depPath)
-          : null
-        context.push({ id: depId, status: specsResult.status, path: depDef.generates, content })
+        const content =
+          specsResult.status === 'filled'
+            ? await this.readSpecsContent(depPath)
+            : null
+        context.push({
+          id: depId,
+          status: specsResult.status,
+          path: depDef.generates,
+          content,
+        })
       } else {
         const status = await this.detectContentStatus(depPath)
         const content = status === 'filled' ? await readFile(depPath) : null
@@ -271,8 +298,8 @@ export class ChangeManager {
 
     // 计算 unlocks（谁把当前 artifact 列为依赖）
     const unlocks = DEFAULT_SCHEMA.artifacts
-      .filter(a => a.requires.includes(artifactId))
-      .map(a => a.id)
+      .filter((a) => a.requires.includes(artifactId))
+      .map((a) => a.id)
 
     // 读取元数据获取 schema 名称
     const metadataPath = join(changeDir, METADATA_FILE_NAME)
@@ -304,17 +331,19 @@ export class ChangeManager {
    * @param filePath - 文件绝对路径
    * @returns 内容状态：missing / empty / filled
    */
-  private async detectContentStatus(filePath: string): Promise<ArtifactContentStatus> {
+  private async detectContentStatus(
+    filePath: string,
+  ): Promise<ArtifactContentStatus> {
     if (!(await exists(filePath))) {
       return 'missing'
     }
 
     const content = await readFile(filePath)
     const stripped = content
-      .replace(/<!--[\s\S]*?-->/g, '')  // 去掉 HTML 注释
+      .replace(/<!--[\s\S]*?-->/g, '') // 去掉 HTML 注释
       .split('\n')
-      .filter(line => line.trim() !== '')  // 去掉空行
-      .filter(line => !/^#{1,6}\s/.test(line.trim()))  // 去掉纯标题行
+      .filter((line) => line.trim() !== '') // 去掉空行
+      .filter((line) => !/^#{1,6}\s/.test(line.trim())) // 去掉纯标题行
       .join('\n')
       .trim()
 
@@ -361,7 +390,10 @@ export class ChangeManager {
       }
     }
 
-    return { status: allFilled ? 'filled' : 'no-content', capabilities: entries }
+    return {
+      status: allFilled ? 'filled' : 'no-content',
+      capabilities: entries,
+    }
   }
 
   /**
@@ -403,7 +435,9 @@ export class ChangeManager {
    * @param statuses - artifact id → 内容状态的映射
    * @returns 工作流状态（next / ready / blocked）
    */
-  private computeWorkflow(statuses: Map<string, ArtifactContentStatus>): WorkflowStatus {
+  private computeWorkflow(
+    statuses: Map<string, ArtifactContentStatus>,
+  ): WorkflowStatus {
     const isFilled = (id: string): boolean => statuses.get(id) === 'filled'
     const needsWork = (id: string): boolean => !isFilled(id)
 
@@ -438,7 +472,7 @@ export class ChangeManager {
    * 解析 tasks.md 内容中的 checkbox 条目
    */
   private parseTaskItems(content: string): TaskItem[] {
-    return [...content.matchAll(/^- \[([ x])\] (.+)$/gm)].map(match => ({
+    return [...content.matchAll(/^- \[([ x])\] (.+)$/gm)].map((match) => ({
       description: match[2]!,
       completed: match[1] === 'x',
     }))
@@ -449,8 +483,12 @@ export class ChangeManager {
    */
   private parseTaskProgress(content: string): ApplyProgress {
     const items = this.parseTaskItems(content)
-    const completed = items.filter(i => i.completed).length
-    return { total: items.length, completed, remaining: items.length - completed }
+    const completed = items.filter((i) => i.completed).length
+    return {
+      total: items.length,
+      completed,
+      remaining: items.length - completed,
+    }
   }
 
   /**
@@ -479,23 +517,39 @@ export class ChangeManager {
 
       if (artifact.id === 'specs') {
         const specsResult = await this.detectSpecsStatus(artifactPath)
-        const content = specsResult.status === 'filled'
-          ? await this.readSpecsContent(artifactPath)
-          : null
-        context.push({ id: artifact.id, status: specsResult.status, path: artifact.generates, content })
+        const content =
+          specsResult.status === 'filled'
+            ? await this.readSpecsContent(artifactPath)
+            : null
+        context.push({
+          id: artifact.id,
+          status: specsResult.status,
+          path: artifact.generates,
+          content,
+        })
       } else {
         const status = await this.detectContentStatus(artifactPath)
-        const content = status === 'filled' ? await readFile(artifactPath) : null
-        context.push({ id: artifact.id, status, path: artifact.generates, content })
+        const content =
+          status === 'filled' ? await readFile(artifactPath) : null
+        context.push({
+          id: artifact.id,
+          status,
+          path: artifact.generates,
+          content,
+        })
       }
     }
 
     // 计算 state 和 progress
-    const tasksContext = context.find(c => c.id === 'tasks')
+    const tasksContext = context.find((c) => c.id === 'tasks')
     let state: ApplyState
     let progress: ApplyProgress
 
-    if (!tasksContext || !tasksContext.content || tasksContext.status !== 'filled') {
+    if (
+      !tasksContext ||
+      !tasksContext.content ||
+      tasksContext.status !== 'filled'
+    ) {
       state = 'blocked'
       progress = { total: 0, completed: 0, remaining: 0 }
     } else {
@@ -526,10 +580,7 @@ export class ChangeManager {
   private async ensureInitialized(): Promise<void> {
     const initialized = await this.workspace.isInitialized()
     if (!initialized) {
-      throw new StateError(
-        'MarchenSpec 尚未初始化',
-        '运行 marchen init 初始化',
-      )
+      throw new StateError('MarchenSpec 尚未初始化', '运行 marchen init 初始化')
     }
   }
 }

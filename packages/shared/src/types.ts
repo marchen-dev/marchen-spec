@@ -78,7 +78,11 @@ export interface TaskItem {
  * - missing: 文件不存在
  * - no-content: 目录存在但为空（仅 specs）
  */
-export type ArtifactContentStatus = 'empty' | 'filled' | 'missing' | 'no-content'
+export type ArtifactContentStatus =
+  | 'empty'
+  | 'filled'
+  | 'missing'
+  | 'no-content'
 
 /**
  * 单个 artifact 的状态详情

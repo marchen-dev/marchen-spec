@@ -2,7 +2,15 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { ensureDir, exists, listDir, readFile, readYaml, writeFile, writeYaml } from '../src/index.js'
+import {
+  ensureDir,
+  exists,
+  listDir,
+  readFile,
+  readYaml,
+  writeFile,
+  writeYaml,
+} from '../src/index.js'
 
 describe('fs 文件系统操作', () => {
   let testDir: string
@@ -55,7 +63,9 @@ describe('fs 文件系统操作', () => {
     })
 
     it('读取不存在的文件时应该抛出 MarchenSpecError', async () => {
-      await expect(readFile(join(testDir, 'missing.txt'))).rejects.toThrow('文件不存在')
+      await expect(readFile(join(testDir, 'missing.txt'))).rejects.toThrow(
+        '文件不存在',
+      )
     })
   })
 

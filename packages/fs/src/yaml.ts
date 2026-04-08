@@ -14,7 +14,11 @@ export async function readYaml<T>(path: string): Promise<T> {
   try {
     return yaml.load(content) as T
   } catch (error) {
-    throw new FileSystemError('YAML 解析失败', path, error instanceof Error ? error : undefined)
+    throw new FileSystemError(
+      'YAML 解析失败',
+      path,
+      error instanceof Error ? error : undefined,
+    )
   }
 }
 

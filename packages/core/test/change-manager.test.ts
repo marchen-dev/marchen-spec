@@ -130,7 +130,8 @@ describe('detectContentStatus 内容检测', () => {
       if (path.endsWith('specs/') || path.endsWith('specs')) return true
       // spec files
       for (const entry of specsEntries) {
-        if (path.includes(`specs/${entry}/spec.md`)) return !!specFileContents[entry]
+        if (path.includes(`specs/${entry}/spec.md`))
+          return !!specFileContents[entry]
       }
       return false
     })
@@ -140,7 +141,8 @@ describe('detectContentStatus 内容检测', () => {
       if (path.endsWith('design.md')) return designContent
       if (path.endsWith('tasks.md')) return tasksContent
       for (const entry of specsEntries) {
-        if (path.includes(`specs/${entry}/spec.md`)) return specFileContents[entry] ?? ''
+        if (path.includes(`specs/${entry}/spec.md`))
+          return specFileContents[entry] ?? ''
       }
       return ''
     })
@@ -163,7 +165,7 @@ describe('detectContentStatus 内容检测', () => {
     setupStatusMocks({ proposalContent: template })
 
     const result = await manager.status('my-feature')
-    const proposal = result.artifacts.find(a => a.id === 'proposal')
+    const proposal = result.artifacts.find((a) => a.id === 'proposal')
     expect(proposal?.status).toBe('empty')
   })
 
@@ -172,7 +174,7 @@ describe('detectContentStatus 内容检测', () => {
     setupStatusMocks({ proposalContent: content })
 
     const result = await manager.status('my-feature')
-    const proposal = result.artifacts.find(a => a.id === 'proposal')
+    const proposal = result.artifacts.find((a) => a.id === 'proposal')
     expect(proposal?.status).toBe('filled')
   })
 
@@ -188,7 +190,7 @@ describe('detectContentStatus 内容检测', () => {
     })
 
     const result = await manager.status('my-feature')
-    const proposal = result.artifacts.find(a => a.id === 'proposal')
+    const proposal = result.artifacts.find((a) => a.id === 'proposal')
     expect(proposal?.status).toBe('missing')
   })
 })
@@ -216,12 +218,15 @@ describe('detectSpecsStatus specs 目录检测', () => {
     })
     vi.mocked(fs.listDir).mockResolvedValue([])
     vi.mocked(fs.readYaml).mockResolvedValue({
-      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+      name: 'my-feature',
+      schema: 'spec-driven',
+      createdAt: '2026-04-05T00:00:00Z',
+      status: 'open',
     })
     vi.mocked(fs.readFile).mockResolvedValue('')
 
     const result = await manager.status('my-feature')
-    const specs = result.artifacts.find(a => a.id === 'specs')
+    const specs = result.artifacts.find((a) => a.id === 'specs')
     expect(specs?.status).toBe('no-content')
     expect(specs?.capabilities).toEqual([])
   })
@@ -239,15 +244,19 @@ describe('detectSpecsStatus specs 目录检测', () => {
       return []
     })
     vi.mocked(fs.readYaml).mockResolvedValue({
-      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+      name: 'my-feature',
+      schema: 'spec-driven',
+      createdAt: '2026-04-05T00:00:00Z',
+      status: 'open',
     })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
-      if (path.includes('specs/auth/spec.md')) return '## ADDED Requirements\n\n### 需求: 用户认证\n系统 SHALL 支持用户通过邮箱和密码进行认证登录。\n\n#### 场景: 成功登录\n- WHEN 用户输入正确的邮箱和密码\n- THEN 系统返回认证令牌'
+      if (path.includes('specs/auth/spec.md'))
+        return '## ADDED Requirements\n\n### 需求: 用户认证\n系统 SHALL 支持用户通过邮箱和密码进行认证登录。\n\n#### 场景: 成功登录\n- WHEN 用户输入正确的邮箱和密码\n- THEN 系统返回认证令牌'
       return ''
     })
 
     const result = await manager.status('my-feature')
-    const specs = result.artifacts.find(a => a.id === 'specs')
+    const specs = result.artifacts.find((a) => a.id === 'specs')
     expect(specs?.status).toBe('filled')
     expect(specs?.capabilities).toEqual(['auth'])
   })
@@ -262,21 +271,27 @@ describe('detectSpecsStatus specs 目录检测', () => {
       return false
     })
     vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
-      if (path.endsWith('specs') || path.endsWith('specs/')) return ['auth', 'theme']
+      if (path.endsWith('specs') || path.endsWith('specs/'))
+        return ['auth', 'theme']
       return []
     })
     vi.mocked(fs.readYaml).mockResolvedValue({
-      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+      name: 'my-feature',
+      schema: 'spec-driven',
+      createdAt: '2026-04-05T00:00:00Z',
+      status: 'open',
     })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
-      if (path.includes('specs/auth/spec.md')) return '## ADDED Requirements\n\n### 需求: 用户认证\n系统 SHALL 支持用户通过邮箱和密码进行认证登录。\n\n#### 场景: 成功登录\n- WHEN 用户输入正确的邮箱和密码\n- THEN 系统返回认证令牌'
+      if (path.includes('specs/auth/spec.md'))
+        return '## ADDED Requirements\n\n### 需求: 用户认证\n系统 SHALL 支持用户通过邮箱和密码进行认证登录。\n\n#### 场景: 成功登录\n- WHEN 用户输入正确的邮箱和密码\n- THEN 系统返回认证令牌'
       // theme 的 spec.md 只有模板骨架，未填充
-      if (path.includes('specs/theme/spec.md')) return '## ADDED Requirements\n\n<!-- 需求描述 -->'
+      if (path.includes('specs/theme/spec.md'))
+        return '## ADDED Requirements\n\n<!-- 需求描述 -->'
       return ''
     })
 
     const result = await manager.status('my-feature')
-    const specs = result.artifacts.find(a => a.id === 'specs')
+    const specs = result.artifacts.find((a) => a.id === 'specs')
     expect(specs?.status).toBe('no-content')
     expect(specs?.capabilities).toEqual(['auth', 'theme'])
   })
@@ -308,7 +323,10 @@ describe('tasks 进度解析', () => {
     })
     vi.mocked(fs.listDir).mockResolvedValue([])
     vi.mocked(fs.readYaml).mockResolvedValue({
-      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+      name: 'my-feature',
+      schema: 'spec-driven',
+      createdAt: '2026-04-05T00:00:00Z',
+      status: 'open',
     })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
       if (path.endsWith('tasks.md')) return tasksContent
@@ -316,7 +334,7 @@ describe('tasks 进度解析', () => {
     })
 
     const result = await manager.status('my-feature')
-    const tasks = result.artifacts.find(a => a.id === 'tasks')
+    const tasks = result.artifacts.find((a) => a.id === 'tasks')
     expect(tasks?.status).toBe('filled')
     expect(result.tasks).toEqual({
       total: 3,
@@ -341,7 +359,10 @@ describe('tasks 进度解析', () => {
     })
     vi.mocked(fs.listDir).mockResolvedValue([])
     vi.mocked(fs.readYaml).mockResolvedValue({
-      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+      name: 'my-feature',
+      schema: 'spec-driven',
+      createdAt: '2026-04-05T00:00:00Z',
+      status: 'open',
     })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
       if (path.endsWith('tasks.md')) return template
@@ -382,7 +403,10 @@ describe('computeWorkflow 工作流计算', () => {
     })
 
     vi.mocked(fs.readYaml).mockResolvedValue({
-      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+      name: 'my-feature',
+      schema: 'spec-driven',
+      createdAt: '2026-04-05T00:00:00Z',
+      status: 'open',
     })
 
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
@@ -408,13 +432,22 @@ describe('computeWorkflow 工作流计算', () => {
     })
 
     vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
-      if ((path.endsWith('specs') || path.endsWith('specs/')) && specsHasContent) return ['auth']
+      if (
+        (path.endsWith('specs') || path.endsWith('specs/')) &&
+        specsHasContent
+      )
+        return ['auth']
       return []
     })
   }
 
   it('初始状态: proposal ready, 其余 blocked', async () => {
-    setupWithStatuses({ proposal: 'empty', specs: 'empty', design: 'empty', tasks: 'empty' })
+    setupWithStatuses({
+      proposal: 'empty',
+      specs: 'empty',
+      design: 'empty',
+      tasks: 'empty',
+    })
 
     const result = await manager.status('my-feature')
     expect(result.workflow.next).toBe('proposal')
@@ -423,7 +456,12 @@ describe('computeWorkflow 工作流计算', () => {
   })
 
   it('proposal filled: specs + design ready, tasks blocked', async () => {
-    setupWithStatuses({ proposal: 'filled', specs: 'empty', design: 'empty', tasks: 'empty' })
+    setupWithStatuses({
+      proposal: 'filled',
+      specs: 'empty',
+      design: 'empty',
+      tasks: 'empty',
+    })
 
     const result = await manager.status('my-feature')
     expect(result.workflow.next).toBe('specs')
@@ -432,7 +470,12 @@ describe('computeWorkflow 工作流计算', () => {
   })
 
   it('proposal + specs + design filled: tasks ready', async () => {
-    setupWithStatuses({ proposal: 'filled', specs: 'filled', design: 'filled', tasks: 'empty' })
+    setupWithStatuses({
+      proposal: 'filled',
+      specs: 'filled',
+      design: 'filled',
+      tasks: 'empty',
+    })
 
     const result = await manager.status('my-feature')
     expect(result.workflow.next).toBe('tasks')
@@ -441,7 +484,12 @@ describe('computeWorkflow 工作流计算', () => {
   })
 
   it('所有 filled: next 为 null', async () => {
-    setupWithStatuses({ proposal: 'filled', specs: 'filled', design: 'filled', tasks: 'filled' })
+    setupWithStatuses({
+      proposal: 'filled',
+      specs: 'filled',
+      design: 'filled',
+      tasks: 'filled',
+    })
 
     const result = await manager.status('my-feature')
     expect(result.workflow.next).toBeNull()
@@ -474,7 +522,9 @@ describe('changeManager.status 集成', () => {
       if (path.endsWith('marchenspec')) return true
       return false
     })
-    await expect(manager.status('non-existent')).rejects.toThrow(ValidationError)
+    await expect(manager.status('non-existent')).rejects.toThrow(
+      ValidationError,
+    )
     await expect(manager.status('non-existent')).rejects.toThrow('不存在')
   })
 
@@ -489,7 +539,10 @@ describe('changeManager.status 集成', () => {
       return false
     })
     vi.mocked(fs.readYaml).mockResolvedValue({
-      name: 'my-feature', schema: 'spec-driven', createdAt: '2026-04-05T00:00:00Z', status: 'open',
+      name: 'my-feature',
+      schema: 'spec-driven',
+      createdAt: '2026-04-05T00:00:00Z',
+      status: 'open',
     })
     vi.mocked(fs.readFile).mockResolvedValue('## 标题\n\n<!-- 注释 -->')
     vi.mocked(fs.listDir).mockResolvedValue([])
@@ -520,7 +573,9 @@ describe('changeManager.getInstructions', () => {
 
   it('未初始化时抛出 StateError', async () => {
     vi.mocked(fs.exists).mockResolvedValue(false)
-    await expect(manager.getInstructions('my-feature', 'proposal')).rejects.toThrow(StateError)
+    await expect(
+      manager.getInstructions('my-feature', 'proposal'),
+    ).rejects.toThrow(StateError)
   })
 
   it('变更不存在时抛出 ValidationError', async () => {
@@ -528,7 +583,9 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('marchenspec')) return true
       return false
     })
-    await expect(manager.getInstructions('non-existent', 'proposal')).rejects.toThrow(ValidationError)
+    await expect(
+      manager.getInstructions('non-existent', 'proposal'),
+    ).rejects.toThrow(ValidationError)
   })
 
   it('artifact 不存在时抛出 ValidationError', async () => {
@@ -537,8 +594,12 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('my-feature')) return true
       return false
     })
-    await expect(manager.getInstructions('my-feature', 'unknown')).rejects.toThrow(ValidationError)
-    await expect(manager.getInstructions('my-feature', 'unknown')).rejects.toThrow('不存在')
+    await expect(
+      manager.getInstructions('my-feature', 'unknown'),
+    ).rejects.toThrow(ValidationError)
+    await expect(
+      manager.getInstructions('my-feature', 'unknown'),
+    ).rejects.toThrow('不存在')
   })
 
   it('proposal 指令: 无依赖, unlocks specs + design', async () => {
@@ -565,7 +626,8 @@ describe('changeManager.getInstructions', () => {
   })
 
   it('specs 指令: 依赖 proposal, unlocks tasks', async () => {
-    const proposalContent = '## 动机\n\n当前应用只有亮色主题，用户在暗光环境下使用体验差，需要暗色模式支持。'
+    const proposalContent =
+      '## 动机\n\n当前应用只有亮色主题，用户在暗光环境下使用体验差，需要暗色模式支持。'
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
       if (path.endsWith('marchenspec')) return true
@@ -598,7 +660,8 @@ describe('changeManager.getInstructions', () => {
     })
     vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
-      if (path.endsWith('design.md')) return '## 背景\n\n当前应用使用硬编码的亮色样式，需要重构为主题系统支持动态切换。'
+      if (path.endsWith('design.md'))
+        return '## 背景\n\n当前应用使用硬编码的亮色样式，需要重构为主题系统支持动态切换。'
       return ''
     })
     vi.mocked(fs.listDir).mockResolvedValue([])
@@ -623,24 +686,32 @@ describe('changeManager.getInstructions', () => {
     })
     vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
     vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
-      if (path.endsWith('specs') || path.endsWith('specs/')) return ['auth', 'theme']
+      if (path.endsWith('specs') || path.endsWith('specs/'))
+        return ['auth', 'theme']
       return []
     })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
-      if (path.includes('specs/auth/spec.md')) return '## Auth spec\n\n系统 SHALL 支持用户通过邮箱和密码进行认证登录。'
-      if (path.includes('specs/theme/spec.md')) return '## Theme spec\n\n系统 SHALL 支持暗色主题和亮色主题之间的切换。'
-      if (path.endsWith('design.md')) return '## 背景\n\n当前应用使用硬编码的亮色样式，需要重构为主题系统。'
+      if (path.includes('specs/auth/spec.md'))
+        return '## Auth spec\n\n系统 SHALL 支持用户通过邮箱和密码进行认证登录。'
+      if (path.includes('specs/theme/spec.md'))
+        return '## Theme spec\n\n系统 SHALL 支持暗色主题和亮色主题之间的切换。'
+      if (path.endsWith('design.md'))
+        return '## 背景\n\n当前应用使用硬编码的亮色样式，需要重构为主题系统。'
       return ''
     })
 
     const result = await manager.getInstructions('my-feature', 'tasks')
 
-    const specsDep = result.context.find(d => d.id === 'specs')
+    const specsDep = result.context.find((d) => d.id === 'specs')
     expect(specsDep?.status).toBe('filled')
     expect(specsDep?.content).toContain('--- specs/auth/spec.md ---')
-    expect(specsDep?.content).toContain('系统 SHALL 支持用户通过邮箱和密码进行认证登录')
+    expect(specsDep?.content).toContain(
+      '系统 SHALL 支持用户通过邮箱和密码进行认证登录',
+    )
     expect(specsDep?.content).toContain('--- specs/theme/spec.md ---')
-    expect(specsDep?.content).toContain('系统 SHALL 支持暗色主题和亮色主题之间的切换')
+    expect(specsDep?.content).toContain(
+      '系统 SHALL 支持暗色主题和亮色主题之间的切换',
+    )
   })
 })
 
@@ -673,7 +744,8 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
   })
 
   it('所有任务完成时 state 为 all_done', async () => {
-    const tasksContent = '## 任务\n\n- [x] 1.1 做 A\n- [x] 1.2 做 B\n- [x] 2.1 做 C'
+    const tasksContent =
+      '## 任务\n\n- [x] 1.1 做 A\n- [x] 1.2 做 B\n- [x] 2.1 做 C'
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
       if (path.endsWith('marchenspec')) return true
@@ -694,7 +766,8 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
   })
 
   it('有未完成任务时 state 为 ready', async () => {
-    const tasksContent = '## 任务\n\n- [x] 1.1 做 A\n- [ ] 1.2 做 B\n- [ ] 2.1 做 C'
+    const tasksContent =
+      '## 任务\n\n- [x] 1.1 做 A\n- [ ] 1.2 做 B\n- [ ] 2.1 做 C'
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
       if (path.endsWith('marchenspec')) return true
@@ -715,8 +788,10 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
   })
 
   it('收集所有 artifact 作为 context', async () => {
-    const proposalContent = '## 动机\n\n当前应用只有亮色主题，用户在暗光环境下使用体验差，需要暗色模式支持。'
-    const tasksContent = '## 任务\n\n- [ ] 1.1 实现暗色主题的基础样式变量\n- [ ] 1.2 添加主题切换按钮组件'
+    const proposalContent =
+      '## 动机\n\n当前应用只有亮色主题，用户在暗光环境下使用体验差，需要暗色模式支持。'
+    const tasksContent =
+      '## 任务\n\n- [ ] 1.1 实现暗色主题的基础样式变量\n- [ ] 1.2 添加主题切换按钮组件'
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
       if (path.endsWith('marchenspec')) return true
@@ -735,10 +810,10 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
     const result = await manager.getApplyInstructions('my-feature')
 
     expect(result.context.length).toBeGreaterThanOrEqual(2)
-    const proposal = result.context.find(c => c.id === 'proposal')
+    const proposal = result.context.find((c) => c.id === 'proposal')
     expect(proposal?.status).toBe('filled')
     expect(proposal?.content).toBe(proposalContent)
-    const tasks = result.context.find(c => c.id === 'tasks')
+    const tasks = result.context.find((c) => c.id === 'tasks')
     expect(tasks?.status).toBe('filled')
     expect(tasks?.content).toBe(tasksContent)
   })

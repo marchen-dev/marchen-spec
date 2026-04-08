@@ -66,8 +66,10 @@ export function registerStatusCommand(program: Command): void {
           // 被阻塞时，追加提示：具体在等待哪些依赖完成
           if (isBlocked) {
             const deps = getDependencies(a.id)
-            const missingDeps = deps.filter(d =>
-              result.artifacts.find(art => art.id === d)?.status !== 'filled',
+            const missingDeps = deps.filter(
+              (d) =>
+                result.artifacts.find((art) => art.id === d)?.status !==
+                'filled',
             )
             if (missingDeps.length > 0) {
               line += ` (等待 ${missingDeps.join(', ')})`
@@ -79,7 +81,9 @@ export function registerStatusCommand(program: Command): void {
 
         // 展示 task 完成进度（仅当 tasks.md 有实质内容时）
         if (result.tasks) {
-          p.log.info(`Tasks: ${result.tasks.completed}/${result.tasks.total} 完成`)
+          p.log.info(
+            `Tasks: ${result.tasks.completed}/${result.tasks.total} 完成`,
+          )
         }
 
         // 展示下一步建议，引导用户继续工作流
