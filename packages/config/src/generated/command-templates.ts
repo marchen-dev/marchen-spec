@@ -44,10 +44,8 @@ tags: [workflow, implementation]
 
 3. **显示进度**
 
-   从返回的 JSON 读取：
-   - \`schemaName\`：当前 schema
-   - \`progress\`：N/M 完成
-   - \`context\` 中 \`id: "tasks"\` 的 \`content\`：剩余任务概览
+   从返回的 JSON 读取并显示：
+   "变更: \`<name>\` | 进度: N/M | 下一个: <第一个未完成任务的描述>"
 
 4. **逐个实现任务**
 
@@ -58,6 +56,7 @@ tags: [workflow, implementation]
    - 实现代码改动
    - 在 tasks.md 中勾选：\`- [ ]\` → \`- [x]\`
      文件路径：\`<changeDir>/tasks.md\`
+   - 显示 "✓ 完成"
    - 继续下一个
 
    **暂停条件：**
@@ -68,10 +67,11 @@ tags: [workflow, implementation]
 
 5. **显示结果**
 
-   - 本次完成的任务
-   - 总进度
-   - 全部完成 → 建议 \`/marchen:archive\`
-   - 暂停 → 说明原因
+   全部完成时：
+   "全部完成 (N/N)，可以用 \`/marchen:archive\` 归档。"
+
+   暂停时：
+   "暂停于任务 N/M: <原因>"
 
 **护栏**
 
