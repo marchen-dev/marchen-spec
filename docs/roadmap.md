@@ -18,6 +18,7 @@
 - 2026-04-05: [verify 命令](../openspec/changes/archive/2026-04-05-implement-verify-command/)
 - 2026-04-05: [status + instructions 命令](../openspec/changes/archive/2026-04-05-implement-status-and-instructions/) (废弃 verify，内容感知状态检测)
 - 2026-04-07: [apply 命令](../openspec/changes/archive/2026-04-07-add-apply-command/) (CLI `instructions apply` + skill 模板 + 类型重构)
+- 2026-04-10: [explore skill](../openspec/changes/archive/2026-04-10-add-explore-skill/) (思考伙伴模式，动手之前先想清楚)
 
 ## 进行中 🚧
 
@@ -38,7 +39,7 @@ CLI 提供 API 后，编写 Claude Code skills 驱动 AI 工作流。每个 skil
 - [ ] marchen:continue — 调 status → 找 ready artifact → 调 instructions → LLM 生成 → 写入
 - [x] marchen:propose — marchen new + 循环 continue 直到所有 artifact filled（含 codegen 基础设施 + init 生成 skill 文件）
 - [x] marchen:apply — 读 tasks.md，逐个实现 task（CLI 层 + 类型 + skill 模板）
-- [ ] marchen:explore — 纯对话模式，思考伙伴
+- [x] marchen:explore — 纯对话模式，思考伙伴
 
 ### Phase 3: 体验优化
 

@@ -79,5 +79,3 @@ tags: [workflow, implementation]
 - 不确定就暂停问，不要猜
 - 使用 AskUserQuestion 时，选项不超过 4 个
 - `instruction` 是给你的指引，不要原样复制到代码注释中
-
-ARGUMENTS: $ARGUMENTS

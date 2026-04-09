@@ -105,7 +105,7 @@ describe('workspace', () => {
         .mock.calls.filter(
           ([path]) => typeof path === 'string' && path.includes('SKILL.md'),
         )
-      expect(skillCalls.length).toBe(4)
+      expect(skillCalls.length).toBe(6)
     })
   })
 })
