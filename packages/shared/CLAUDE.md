@@ -17,7 +17,7 @@ src/
 ## 核心导出
 
 **常量** (`constants.ts`):
-- `SPEC_DIRECTORY_NAME = 'marchenspec'` - 规范目录名
+- `SPEC_DIRECTORY_NAME = 'marchen'` - 规范目录名
 - `CHANGE_DIRECTORY_NAME = 'changes'` - 变更目录名
 - `ARCHIVE_DIRECTORY_NAME = 'archive'` - 归档目录名
 - `METADATA_FILE_NAME = '.metadata.yaml'` - 元数据文件名
@@ -32,7 +32,7 @@ src/
 - `PackageBoundary` - 包边界接口 `{ name, dependsOn }`
 - `ChangeMetadata` - 变更元数据 `{ name, schema, createdAt, status }`
 - `ChangeStatus` - 变更状态 `'open' | 'archived'`
-- `ArtifactDefinition` - 制品定义 `{ id, generates, requires }`
+- `ArtifactDefinition` - 制品定义 `{ id, generates, requires, template?, instruction }`
 - `SchemaDefinition` - Schema 定义 `{ name, artifacts }`
 - `TaskItem` - 任务条目 `{ description, completed }`
 - `ArtifactContentStatus` - 制品内容状态 `'empty' | 'filled' | 'missing' | 'no-content'`

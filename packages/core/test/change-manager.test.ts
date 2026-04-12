@@ -122,7 +122,7 @@ describe('detectContentStatus 内容检测', () => {
     // 3-6. artifact paths (proposal.md, specs/, design.md, tasks.md)
     // + spec file checks
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true // specDir
+      if (path.endsWith('marchen')) return true // specDir
       if (path.endsWith('my-feature')) return true // changeDir
       if (path.endsWith('proposal.md')) return proposalContent !== null
       if (path.endsWith('design.md')) return designContent !== null
@@ -182,7 +182,7 @@ describe('detectContentStatus 内容检测', () => {
     setupStatusMocks({ proposalContent: '' })
     // Override proposal to not exist
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('proposal.md')) return false
       if (path.endsWith('specs') || path.endsWith('specs/')) return true
@@ -211,7 +211,7 @@ describe('detectSpecsStatus specs 目录检测', () => {
 
   it('空目录 → no-content', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('specs') || path.endsWith('specs/')) return true
       return false
@@ -233,7 +233,7 @@ describe('detectSpecsStatus specs 目录检测', () => {
 
   it('有 filled spec 文件 → filled', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('specs') || path.endsWith('specs/')) return true
       if (path.includes('specs/auth/spec.md')) return true
@@ -263,7 +263,7 @@ describe('detectSpecsStatus specs 目录检测', () => {
 
   it('多个 spec 文件部分填充 → no-content', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('specs') || path.endsWith('specs/')) return true
       if (path.includes('specs/auth/spec.md')) return true
@@ -315,7 +315,7 @@ describe('tasks 进度解析', () => {
     const tasksContent = `## 1. 基础设施\n\n- [x] 1.1 创建模块\n- [ ] 1.2 添加依赖\n- [x] 2.1 实现逻辑`
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('tasks.md')) return true
       if (path.endsWith('specs') || path.endsWith('specs/')) return true
@@ -351,7 +351,7 @@ describe('tasks 进度解析', () => {
     const template = `## 1. <!-- 任务组名称 -->\n\n- [ ] 1.1 <!-- 任务描述 -->`
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('tasks.md')) return true
       if (path.endsWith('specs') || path.endsWith('specs/')) return true
@@ -392,7 +392,7 @@ describe('computeWorkflow 工作流计算', () => {
     const specsHasContent = statuses.specs === 'filled'
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('proposal.md')) return true
       if (path.endsWith('design.md')) return true
@@ -519,7 +519,7 @@ describe('changeManager.status 集成', () => {
 
   it('变更不存在时抛出 ValidationError', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       return false
     })
     await expect(manager.status('non-existent')).rejects.toThrow(
@@ -530,7 +530,7 @@ describe('changeManager.status 集成', () => {
 
   it('返回完整的 StatusResult', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('proposal.md')) return true
       if (path.endsWith('design.md')) return true
@@ -580,7 +580,7 @@ describe('changeManager.getInstructions', () => {
 
   it('变更不存在时抛出 ValidationError', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       return false
     })
     await expect(
@@ -590,7 +590,7 @@ describe('changeManager.getInstructions', () => {
 
   it('artifact 不存在时抛出 ValidationError', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       return false
     })
@@ -604,7 +604,7 @@ describe('changeManager.getInstructions', () => {
 
   it('proposal 指令: 无依赖, unlocks specs + design', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       return false
     })
@@ -615,7 +615,7 @@ describe('changeManager.getInstructions', () => {
     expect(result.changeName).toBe('my-feature')
     expect(result.artifactId).toBe('proposal')
     expect(result.schemaName).toBe('spec-driven')
-    expect(result.changeDir).toBe('/test/root/marchenspec/changes/my-feature')
+    expect(result.changeDir).toBe('/test/root/marchen/changes/my-feature')
     expect(result.outputPath).toBe('proposal.md')
     expect(result.template).toBeTruthy()
     expect(result.instruction).toBeTruthy()
@@ -630,7 +630,7 @@ describe('changeManager.getInstructions', () => {
       '## 动机\n\n当前应用只有亮色主题，用户在暗光环境下使用体验差，需要暗色模式支持。'
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('proposal.md')) return true
       return false
@@ -652,7 +652,7 @@ describe('changeManager.getInstructions', () => {
 
   it('tasks 指令: 依赖 specs + design', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('specs') || path.endsWith('specs/')) return true
       if (path.endsWith('design.md')) return true
@@ -676,7 +676,7 @@ describe('changeManager.getInstructions', () => {
 
   it('specs 依赖内容自动拼接', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('specs') || path.endsWith('specs/')) return true
       if (path.includes('specs/auth/spec.md')) return true
@@ -727,7 +727,7 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
 
   it('tasks 未填充时 state 为 blocked', async () => {
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       return false
     })
@@ -748,7 +748,7 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
       '## 任务\n\n- [x] 1.1 做 A\n- [x] 1.2 做 B\n- [x] 2.1 做 C'
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('tasks.md')) return true
       return false
@@ -770,7 +770,7 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
       '## 任务\n\n- [x] 1.1 做 A\n- [ ] 1.2 做 B\n- [ ] 2.1 做 C'
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('tasks.md')) return true
       return false
@@ -794,7 +794,7 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
       '## 任务\n\n- [ ] 1.1 实现暗色主题的基础样式变量\n- [ ] 1.2 添加主题切换按钮组件'
 
     vi.mocked(fs.exists).mockImplementation(async (path: string) => {
-      if (path.endsWith('marchenspec')) return true
+      if (path.endsWith('marchen')) return true
       if (path.endsWith('my-feature')) return true
       if (path.endsWith('proposal.md')) return true
       if (path.endsWith('tasks.md')) return true

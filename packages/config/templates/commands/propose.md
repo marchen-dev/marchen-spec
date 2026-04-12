@@ -38,7 +38,7 @@ tags: [workflow, artifacts]
    marchen new <name>
    ```
 
-   创建 `marchenspec/changes/<name>/` 目录和 `.metadata.yaml`。
+   创建 `marchen/changes/<name>/` 目录和 `.metadata.yaml`。
 
    如果同名变更已存在，用 **AskUserQuestion** 询问用户是继续已有变更还是换个名称。
 
@@ -78,14 +78,14 @@ tags: [workflow, artifacts]
       **普通 artifact（proposal / design / tasks）：**
       - 读取 `context` 中 `status` 为 `filled` 的 `content` 作为上下文
       - 按 `instruction` 指引 + `template` 结构生成内容
-      - 写入 `marchenspec/changes/<name>/<outputPath>`
+      - 写入 `marchen/changes/<name>/<outputPath>`
       - 写入后验证文件存在
 
       **specs（目录型 artifact，outputPath 为 `specs/`）：**
       - 读取 proposal 内容（在 `context` 中，`id` 为 `proposal` 的 `content`）
       - 从 proposal 的"能力"章节提取能力列表（kebab-case 名称）
       - 为每个能力：
-        - 创建目录 `marchenspec/changes/<name>/specs/<capability>/`
+        - 创建目录 `marchen/changes/<name>/specs/<capability>/`
         - 按 `template` 结构 + `instruction` 指引生成 spec 内容
         - 写入 `specs/<capability>/spec.md`
       - 写入后验证每个 spec 文件存在

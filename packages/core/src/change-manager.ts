@@ -6,6 +6,7 @@ import type {
   ChangeMetadata,
   ContextInfo,
   InstructionsResult,
+  SchemaDefinition,
   StatusResult,
   TaskItem,
   WorkflowStatus,
@@ -13,9 +14,9 @@ import type {
 import type { Workspace } from './workspace.js'
 import { join } from 'node:path'
 import {
-  ARTIFACT_INSTRUCTIONS,
-  ARTIFACT_TEMPLATES,
-  DEFAULT_SCHEMA,
+  APPLY_INSTRUCTION,
+  DEFAULT_SCHEMA_NAME,
+  getSchema,
 } from '@marchen-spec/config'
 import {
   ensureDir,
@@ -60,13 +61,14 @@ export class ChangeManager {
   /**
    * 创建一个新的变更
    *
-   * 在 marchenspec/changes/ 下创建变更目录，写入元数据和初始 artifact 文件。
+   * 在 marchen/changes/ 下创建变更目录，写入元数据和初始 artifact 文件。
    * 会依次校验：MarchenSpec 是否已初始化、名称格式、是否重名。
    *
    * @param name - 变更名称（kebab-case）
+   * @param schemaName - schema 名称，默认 spec-driven
    * @throws {MarchenSpecError} 未初始化、名称格式错误或变更已存在时抛出
    */
-  async create(name: string): Promise<void> {
+  async create(name: string, schemaName?: string): Promise<void> {
     // 校验初始化状态
     await this.ensureInitialized()
 
@@ -83,14 +85,25 @@ export class ChangeManager {
       throw new ValidationError(`变更 "${name}" 已存在`)
     }
 
-    // 创建变更根目录和 specs 子目录
+    // 查找 schema 定义
+    const resolvedSchemaName = schemaName ?? DEFAULT_SCHEMA_NAME
+    const schema = getSchema(resolvedSchemaName)
+
+    // 创建变更根目录
     await ensureDir(changeDir)
-    await ensureDir(join(changeDir, 'specs'))
+
+    // 根据 schema 的 artifacts 创建初始文件/目录
+    for (const artifact of schema.artifacts) {
+      if (artifact.generates.endsWith('/')) {
+        // 目录类型（如 specs/）
+        await ensureDir(join(changeDir, artifact.generates))
+      }
+    }
 
     // 写入元数据文件
     const metadata: ChangeMetadata = {
       name,
-      schema: DEFAULT_SCHEMA.name,
+      schema: resolvedSchemaName,
       createdAt: new Date().toISOString(),
       status: 'open',
     }
@@ -195,11 +208,12 @@ export class ChangeManager {
     // 读取元数据获取 schema
     const metadataPath = join(changeDir, METADATA_FILE_NAME)
     const metadata = await readYaml<ChangeMetadata>(metadataPath)
+    const schema = getSchema(metadata.schema)
 
     // 逐个检测 artifact 的内容状态
     // specs 是目录类型，需要特殊处理；其余为单文件类型
     const artifacts: ArtifactStatusDetail[] = []
-    for (const artifact of DEFAULT_SCHEMA.artifacts) {
+    for (const artifact of schema.artifacts) {
       const artifactPath = join(changeDir, artifact.generates)
 
       if (artifact.id === 'specs') {
@@ -213,7 +227,7 @@ export class ChangeManager {
 
     // 根据各 artifact 的内容状态，计算工作流建议（哪些可以开始、哪些被阻塞）
     const statusMap = new Map(artifacts.map((a) => [a.id, a.status]))
-    const workflow = this.computeWorkflow(statusMap)
+    const workflow = this.computeWorkflow(schema, statusMap)
 
     // tasks 进度独立于 artifact 状态：只要 tasks.md 有实质内容就解析 checkbox
     // 这样 artifact status 只反映"有没有内容"，进度信息放在 tasks 字段
@@ -255,24 +269,26 @@ export class ChangeManager {
     }
 
     // 查找 artifact 定义，校验 artifactId 合法性
-    const artifactDef = DEFAULT_SCHEMA.artifacts.find(
-      (a) => a.id === artifactId,
-    )
+    const metadataPath = join(changeDir, METADATA_FILE_NAME)
+    const metadata = await readYaml<ChangeMetadata>(metadataPath)
+    const schema = getSchema(metadata.schema)
+
+    const artifactDef = schema.artifacts.find((a) => a.id === artifactId)
     if (!artifactDef) {
       throw new ValidationError(
-        `Artifact "${artifactId}" 不存在，可用的 artifact: ${DEFAULT_SCHEMA.artifacts.map((a) => a.id).join(', ')}`,
+        `Artifact "${artifactId}" 不存在，可用的 artifact: ${schema.artifacts.map((a) => a.id).join(', ')}`,
       )
     }
 
-    // 获取模板和指导文本
-    const template = ARTIFACT_TEMPLATES[artifactId] ?? ''
-    const instruction = ARTIFACT_INSTRUCTIONS[artifactId] ?? ''
+    // 从 artifact 定义获取模板和指导文本
+    const template = artifactDef.template ?? ''
+    const instruction = artifactDef.instruction
 
     // 构建上下文信息：读取每个依赖 artifact 的状态和内容
     // specs 目录需要拼接所有 spec 文件内容；单文件直接读取
     const context: ContextInfo[] = []
     for (const depId of artifactDef.requires) {
-      const depDef = DEFAULT_SCHEMA.artifacts.find((a) => a.id === depId)
+      const depDef = schema.artifacts.find((a) => a.id === depId)
       if (!depDef) continue
 
       const depPath = join(changeDir, depDef.generates)
@@ -297,13 +313,9 @@ export class ChangeManager {
     }
 
     // 计算 unlocks（谁把当前 artifact 列为依赖）
-    const unlocks = DEFAULT_SCHEMA.artifacts
+    const unlocks = schema.artifacts
       .filter((a) => a.requires.includes(artifactId))
       .map((a) => a.id)
-
-    // 读取元数据获取 schema 名称
-    const metadataPath = join(changeDir, METADATA_FILE_NAME)
-    const metadata = await readYaml<ChangeMetadata>(metadataPath)
 
     return {
       changeName: name,
@@ -421,48 +433,33 @@ export class ChangeManager {
   }
 
   /**
-   * 根据固定依赖规则计算工作流状态
+   * 根据 schema 的依赖关系计算工作流状态
    *
-   * 依赖关系（硬编码，仅 spec-driven schema）：
-   * - proposal: 无依赖，总是可以开始
-   * - specs: 依赖 proposal filled
-   * - design: 依赖 proposal filled
-   * - tasks: 依赖 specs filled 且 design filled
+   * 通用实现：遍历 schema 的所有 artifacts，
+   * 根据 requires 字段判断每个 artifact 是 ready 还是 blocked。
    *
-   * 已 filled 的 artifact 不出现在 ready 或 blocked 中。
-   * next 为 ready 列表中的第一个（按优先级排序），全部完成时为 null。
-   *
+   * @param schema - schema 定义
    * @param statuses - artifact id → 内容状态的映射
    * @returns 工作流状态（next / ready / blocked）
    */
   private computeWorkflow(
+    schema: SchemaDefinition,
     statuses: Map<string, ArtifactContentStatus>,
   ): WorkflowStatus {
     const isFilled = (id: string): boolean => statuses.get(id) === 'filled'
-    const needsWork = (id: string): boolean => !isFilled(id)
 
     const ready: string[] = []
     const blocked: string[] = []
 
-    // proposal: 无依赖
-    if (needsWork('proposal')) ready.push('proposal')
+    for (const artifact of schema.artifacts) {
+      if (isFilled(artifact.id)) continue
 
-    // specs: 依赖 proposal
-    if (needsWork('specs')) {
-      if (isFilled('proposal')) ready.push('specs')
-      else blocked.push('specs')
-    }
-
-    // design: 依赖 proposal
-    if (needsWork('design')) {
-      if (isFilled('proposal')) ready.push('design')
-      else blocked.push('design')
-    }
-
-    // tasks: 依赖 specs + design
-    if (needsWork('tasks')) {
-      if (isFilled('specs') && isFilled('design')) ready.push('tasks')
-      else blocked.push('tasks')
+      const depsReady = artifact.requires.every(isFilled)
+      if (depsReady) {
+        ready.push(artifact.id)
+      } else {
+        blocked.push(artifact.id)
+      }
     }
 
     return { next: ready[0] ?? null, ready, blocked }
@@ -509,10 +506,11 @@ export class ChangeManager {
 
     const metadataPath = join(changeDir, METADATA_FILE_NAME)
     const metadata = await readYaml<ChangeMetadata>(metadataPath)
+    const schema = getSchema(metadata.schema)
 
     // 收集所有 artifact 的上下文
     const context: ContextInfo[] = []
-    for (const artifact of DEFAULT_SCHEMA.artifacts) {
+    for (const artifact of schema.artifacts) {
       const artifactPath = join(changeDir, artifact.generates)
 
       if (artifact.id === 'specs') {
@@ -557,7 +555,7 @@ export class ChangeManager {
       state = progress.remaining === 0 ? 'all_done' : 'ready'
     }
 
-    const instruction = ARTIFACT_INSTRUCTIONS.apply ?? ''
+    const instruction = APPLY_INSTRUCTION
 
     return {
       changeName: name,

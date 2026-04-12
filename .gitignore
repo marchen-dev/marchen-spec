@@ -5,6 +5,6 @@ coverage
 .turbo
 *.tsbuildinfo
 repomix-output.xml
-marchenspec
+marchen
 .worktrees
 .claude/worktrees

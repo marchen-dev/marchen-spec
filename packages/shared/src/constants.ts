@@ -1,5 +1,5 @@
 /** 规范目录名称 */
-export const SPEC_DIRECTORY_NAME = 'marchenspec'
+export const SPEC_DIRECTORY_NAME = 'marchen'
 
 /** 变更目录名称 */
 export const CHANGE_DIRECTORY_NAME = 'changes'

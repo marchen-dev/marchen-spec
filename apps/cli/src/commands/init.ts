@@ -5,7 +5,7 @@ import { createContext } from '../utils/context.js'
 /**
  * 注册 init 命令
  *
- * 初始化 MarchenSpec 目录结构，创建 marchenspec/ 目录及默认配置
+ * 初始化 MarchenSpec 目录结构，创建 marchen/ 目录及默认配置
  *
  * @param program - Commander 程序实例
  */

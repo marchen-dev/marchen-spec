@@ -40,9 +40,9 @@ const workspace = new Workspace()      // 默认 cwd
 const workspace = new Workspace(root)  // 指定路径
 
 workspace.root          // 工作区根目录
-workspace.specDir       // marchenspec/ 路径
-workspace.changeDir     // marchenspec/changes/ 路径
-workspace.archiveDir    // marchenspec/archive/ 路径
+workspace.specDir       // marchen/ 路径
+workspace.changeDir     // marchen/changes/ 路径
+workspace.archiveDir    // marchen/archive/ 路径
 workspace.packageBoundaries  // PackageBoundary[]
 
 await workspace.isInitialized()  // 检查是否已初始化
@@ -56,7 +56,8 @@ await workspace.initialize()     // 执行初始化
 ```typescript
 const changes = new ChangeManager(workspace)
 
-await changes.create('my-feature')       // 创建变更
+await changes.create('my-feature')               // 创建变更（默认 spec-driven）
+await changes.create('my-feature', 'rapid')      // 创建变更（rapid schema）
 await changes.archive('my-feature')      // 归档变更
 await changes.list()                     // 列出所有 open 变更
 await changes.status('my-feature')       // 查询 artifact 内容状态和工作流建议

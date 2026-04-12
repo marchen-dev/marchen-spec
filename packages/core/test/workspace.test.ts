@@ -22,7 +22,7 @@ describe('workspace', () => {
   it('构造时计算路径', () => {
     const workspace = new Workspace('/test/root')
     expect(workspace.root).toBe('/test/root')
-    expect(workspace.specDir).toContain('marchenspec')
+    expect(workspace.specDir).toContain('marchen')
     expect(workspace.changeDir).toContain('changes')
   })
 
@@ -53,7 +53,7 @@ describe('workspace', () => {
 
       // 创建目录：specDir, changes, archive, skill 目录, commands 目录
       expect(fs.ensureDir).toHaveBeenCalledWith(
-        expect.stringContaining('marchenspec'),
+        expect.stringContaining('marchen'),
       )
       expect(fs.ensureDir).toHaveBeenCalledWith(
         expect.stringContaining('changes'),

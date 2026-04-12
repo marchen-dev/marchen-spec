@@ -39,6 +39,10 @@ export interface ArtifactDefinition {
   readonly generates: string
   /** 依赖的其他 artifact ID 列表 */
   readonly requires: readonly string[]
+  /** 初始 markdown 骨架模板，目录类型（如 specs）无模板 */
+  readonly template?: string
+  /** 给 LLM 的指导文本，告诉 AI 如何填充该 artifact */
+  readonly instruction: string
 }
 
 /**

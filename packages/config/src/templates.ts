@@ -54,14 +54,3 @@ export const TASKS_TEMPLATE = `## 1. <!-- 任务组名称 -->
 - [ ] 1.1 <!-- 任务描述 -->
 - [ ] 1.2 <!-- 任务描述 -->
 `
-
-/**
- * Artifact ID 到模板内容的映射
- *
- * specs 类型不需要模板（只创建空目录）
- */
-export const ARTIFACT_TEMPLATES: Record<string, string> = {
-  proposal: PROPOSAL_TEMPLATE,
-  design: DESIGN_TEMPLATE,
-  tasks: TASKS_TEMPLATE,
-}

@@ -24,10 +24,10 @@ OpenSpec 使用双层规范系统：
 
 ### 决策
 
-**去掉 `marchenspec/specs/` 目录，archive 作为唯一真相来源。**
+**去掉 `marchen/specs/` 目录，archive 作为唯一真相来源。**
 
 ```
-marchenspec/
+marchen/
 └─ changes/
    ├─ my-feature/          (活跃变更)
    │  ├─ .metadata.yaml

@@ -107,9 +107,9 @@ marchen list --json
 如果用户提到了变更或你发现某个变更相关：
 
 1. **读取已有 artifact 作为上下文**
-   - `marchenspec/changes/<name>/proposal.md`
-   - `marchenspec/changes/<name>/design.md`
-   - `marchenspec/changes/<name>/tasks.md`
+   - `marchen/changes/<name>/proposal.md`
+   - `marchen/changes/<name>/design.md`
+   - `marchen/changes/<name>/tasks.md`
    - 等
 
 2. **在对话中自然引用**
