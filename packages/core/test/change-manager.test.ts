@@ -818,3 +818,63 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
     expect(tasks?.content).toBe(tasksContent)
   })
 })
+
+// ============================================================
+// archive 测试
+// ============================================================
+
+describe('changeManager.archive 归档变更', () => {
+  let workspace: Workspace
+  let manager: ChangeManager
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    workspace = new Workspace('/test/root')
+    manager = new ChangeManager(workspace)
+  })
+
+  it('未初始化时应该抛出错误', async () => {
+    vi.mocked(fs.exists).mockResolvedValue(false)
+    await expect(manager.archive('my-feature')).rejects.toThrow(StateError)
+  })
+
+  it('变更不存在时应该抛出错误', async () => {
+    // specDir exists, changeDir does not
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchen')) return true
+      return false
+    })
+    await expect(manager.archive('my-feature')).rejects.toThrow(ValidationError)
+    await expect(manager.archive('my-feature')).rejects.toThrow('不存在')
+  })
+
+  it('目标归档目录已存在时应该抛出错误', async () => {
+    // specDir, changeDir, archiveTarget all exist
+    vi.mocked(fs.exists).mockResolvedValue(true)
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
+
+    await expect(manager.archive('my-feature')).rejects.toThrow(ValidationError)
+    await expect(manager.archive('my-feature')).rejects.toThrow('已存在')
+  })
+
+  it('正常归档并返回 ArchiveResult', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchen')) return true // specDir
+      if (path.includes('changes') && path.endsWith('my-feature')) return true // changeDir
+      return false // archiveTarget does not exist
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
+
+    const result = await manager.archive('my-feature')
+
+    expect(result.name).toBe('my-feature')
+    expect(result.schema).toBe('full')
+    expect(result.archivedTo).toContain('my-feature')
+    expect(result.archivedAt).toBeTruthy()
+    expect(fs.writeYaml).toHaveBeenCalledWith(
+      expect.stringContaining('.metadata.yaml'),
+      expect.objectContaining({ status: 'archived' }),
+    )
+    expect(fs.moveDir).toHaveBeenCalledTimes(1)
+  })
+})

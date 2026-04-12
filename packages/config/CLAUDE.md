@@ -31,12 +31,14 @@ templates/
 │   ├── propose.md
 │   ├── propose-lite.md
 │   ├── apply.md
-│   └── explore.md
+│   ├── explore.md
+│   └── archive.md
 └── commands/        # Command 模板源文件（.md）
     ├── propose.md
     ├── propose-lite.md
     ├── apply.md
-    └── explore.md
+    ├── explore.md
+    └── archive.md
 scripts/
 └── generate-templates.ts  # 模板 codegen 脚本（pnpm generate）
 ```
@@ -51,8 +53,8 @@ scripts/
 - `getSchema(name)` - 按名称查找 schema，不存在时抛 ValidationError
 - `APPLY_INSTRUCTION` - apply 阶段的 LLM 指导文本
 - `PROPOSAL_TEMPLATE` / `DESIGN_TEMPLATE` / `TASKS_TEMPLATE` - 各 artifact 的 Markdown 模板
-- `SKILL_TEMPLATES` - Skill 模板映射（propose, propose-lite, apply, explore）
-- `COMMAND_TEMPLATES` - Command 模板映射（propose, propose-lite, apply, explore）
+- `SKILL_TEMPLATES` - Skill 模板映射（propose, propose-lite, apply, explore, archive）
+- `COMMAND_TEMPLATES` - Command 模板映射（propose, propose-lite, apply, explore, archive）
 
 ## 开发命令
 

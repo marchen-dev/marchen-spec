@@ -191,3 +191,17 @@ export interface InstructionsResult {
   /** apply 阶段的任务进度，创建 artifact 时为 null */
   readonly progress: ApplyProgress | null
 }
+
+/**
+ * 归档操作结果
+ */
+export interface ArchiveResult {
+  /** 变更名称 */
+  readonly name: string
+  /** 使用的 schema */
+  readonly schema: string
+  /** 归档目标路径 */
+  readonly archivedTo: string
+  /** 归档时间（ISO 8601） */
+  readonly archivedAt: string
+}

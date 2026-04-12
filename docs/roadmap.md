@@ -4,6 +4,7 @@
 
 ## 已完成 ✅
 
+- 2026-04-12: [archive skill 模板 + CLI --json 支持](../openspec/changes/archive/2026-04-12-add-archive-skill/)
 - 2026-04-12: [Schema 重命名 full/lite + propose-lite 模板](../openspec/changes/archive/2026-04-12-rename-schemas-and-add-propose-lite/)
 - 2026-03-22: [项目基础搭建](../openspec/changes/archive/2026-03-22-bootstrap-monorepo-foundation/)
 - 2026-03-29: [文件系统包 + init 命令](../openspec/changes/archive/2026-03-29-implement-fs-and-init-command/)

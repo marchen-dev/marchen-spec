@@ -15,21 +15,22 @@ export function registerArchiveCommand(program: Command): void {
     .command('archive')
     .description('归档一个已完成的变更')
     .argument('<name>', '变更名称')
-    .action(async (name: string) => {
-      p.intro('MarchenSpec CLI')
-
-      const spinner = p.spinner()
-      spinner.start(`正在归档变更 "${name}"...`)
-
+    .option('--json', '输出 JSON 格式')
+    .action(async (name: string, options: { json?: boolean }) => {
       try {
         const { changes } = createContext()
-        await changes.archive(name)
-        spinner.stop(`变更 "${name}" 归档成功`)
+        const result = await changes.archive(name)
+
+        if (options.json) {
+          console.log(JSON.stringify(result, null, 2))
+          return
+        }
+
+        p.intro('MarchenSpec CLI')
+        p.log.success(`变更 "${name}" 归档成功`)
+        p.outro(`运行 marchen list 查看剩余变更`)
       } catch (error) {
-        spinner.stop('归档失败')
         handleError(error)
       }
-
-      p.outro(`运行 marchen list 查看剩余变更`)
     })
 }

@@ -1,6 +1,7 @@
 import type {
   ApplyProgress,
   ApplyState,
+  ArchiveResult,
   ArtifactContentStatus,
   ArtifactStatusDetail,
   ChangeMetadata,
@@ -113,13 +114,15 @@ export class ChangeManager {
   /**
    * 归档一个已完成的变更
    *
-   * 将变更目录从 marchenspec/changes/ 移动到 marchenspec/changes/archive/，
+   * 将变更目录从 marchenspec/changes/ 移动到 marchenspec/archive/，
    * 目标目录名格式为 YYYY-MM-DD-<name>。同时更新元数据的 status 和 archivedAt。
    *
    * @param name - 变更名称
-   * @throws {MarchenSpecError} 未初始化或变更不存在时抛出
+   * @returns 归档结果
+   * @throws {ValidationError} 变更不存在或目标目录已存在时抛出
+   * @throws {StateError} 未初始化时抛出
    */
-  async archive(name: string): Promise<void> {
+  async archive(name: string): Promise<ArchiveResult> {
     await this.ensureInitialized()
 
     const changeDir = join(this.workspace.changeDir, name)
@@ -127,20 +130,35 @@ export class ChangeManager {
       throw new ValidationError(`变更 "${name}" 不存在`)
     }
 
-    // 更新元数据
+    // 读取元数据
     const metadataPath = join(changeDir, METADATA_FILE_NAME)
     const metadata = await readYaml<ChangeMetadata>(metadataPath)
     const now = new Date()
+    const archivedAt = now.toISOString()
+    const datePrefix = archivedAt.slice(0, 10)
+    const archiveDir = join(this.workspace.archiveDir, `${datePrefix}-${name}`)
+
+    // 检查目标目录是否已存在
+    if (await exists(archiveDir)) {
+      throw new ValidationError(`归档目标 "${datePrefix}-${name}" 已存在`)
+    }
+
+    // 更新元数据
     await writeYaml(metadataPath, {
       ...metadata,
       status: 'archived' as const,
-      archivedAt: now.toISOString(),
+      archivedAt,
     })
 
     // 移动到 archive 目录
-    const datePrefix = now.toISOString().slice(0, 10)
-    const archiveDir = join(this.workspace.archiveDir, `${datePrefix}-${name}`)
     await moveDir(changeDir, archiveDir)
+
+    return {
+      name,
+      schema: metadata.schema,
+      archivedTo: archiveDir,
+      archivedAt,
+    }
   }
 
   /**

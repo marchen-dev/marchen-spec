@@ -53,7 +53,8 @@ marchen list          # 列出所有 open 变更
 
 ### archive 命令
 ```bash
-marchen archive <name>  # 归档变更，移动到 archive/ 并更新 metadata
+marchen archive <name>         # 归档变更，移动到 archive/ 并更新 metadata
+marchen archive <name> --json  # 输出 JSON 格式（ArchiveResult）
 ```
 
 ### status 命令

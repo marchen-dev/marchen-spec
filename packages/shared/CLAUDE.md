@@ -43,6 +43,7 @@ src/
 - `ApplyState` - apply 阶段状态 `'ready' | 'blocked' | 'all_done'`
 - `ApplyProgress` - apply 阶段进度 `{ total, completed, remaining }`
 - `InstructionsResult` - 指令结果 `{ changeName, artifactId, outputPath?, template?, instruction, context, unlocks?, state?, progress? }`
+- `ArchiveResult` - 归档结果 `{ name, schema, archivedTo, archivedAt }`
 
 ## 开发命令
 

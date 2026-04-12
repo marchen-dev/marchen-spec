@@ -2,9 +2,9 @@
 
 MarchenSpec 是一个规范驱动工作流 CLI 工具（类似 OpenSpec），使用 pnpm + Turborepo 构建的 monorepo。
 
-**CLI 命令**: `marchen`（已实现 init, new, list, archive, status, instructions, verify 命令）
+**CLI 命令**: `marchen`（已实现 init, new, list, archive, status, instructions 命令）
 
-**AI Skills**: `marchen init` 自动生成 `.claude/skills/` 和 `.claude/commands/` 文件（marchen-propose, marchen-propose-lite, marchen-apply, marchen-explore skill）
+**AI Skills**: `marchen init` 自动生成 `.claude/skills/` 和 `.claude/commands/` 文件（marchen-propose, marchen-propose-lite, marchen-apply, marchen-explore, marchen-archive skill）
 
 ## 架构
 
@@ -23,7 +23,7 @@ MarchenSpec 是一个规范驱动工作流 CLI 工具（类似 OpenSpec），使
 - **apps/cli**: 命令注册、参数解析、终端 UI（commander + @clack/prompts）
 - **packages/core**: 业务逻辑，`Workspace` 类 + `ChangeManager` 类
 - **packages/fs**: 文件系统操作（paths / directory / file / yaml）
-- **packages/config**: 配置加载、Schema 定义、Artifact 模板管理、Artifact 指导文本（含 apply）、Skill/Command 模板（codegen 生成，propose + propose-lite + apply + explore）
+- **packages/config**: 配置加载、Schema 定义、Artifact 模板管理、Artifact 指导文本（含 apply）、Skill/Command 模板（codegen 生成，propose + propose-lite + apply + explore + archive）
 - **packages/shared**: 共享类型、常量、错误定义
 
 ## 语言
