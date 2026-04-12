@@ -472,11 +472,8 @@ export interface SkillTemplate {
 
 /** 所有 skill 模板 */
 export const SKILL_TEMPLATES: Record<string, SkillTemplate> = {
-  apply: { dirName: 'marchen-apply', content: SKILL_APPLY },
-  explore: { dirName: 'marchen-explore', content: SKILL_EXPLORE },
-  'propose-lite': {
-    dirName: 'marchen-propose-lite',
-    content: SKILL_PROPOSE_LITE,
-  },
-  propose: { dirName: 'marchen-propose', content: SKILL_PROPOSE },
+  'apply': { dirName: 'marchen-apply', content: SKILL_APPLY },
+  'explore': { dirName: 'marchen-explore', content: SKILL_EXPLORE },
+  'propose-lite': { dirName: 'marchen-propose-lite', content: SKILL_PROPOSE_LITE },
+  'propose': { dirName: 'marchen-propose', content: SKILL_PROPOSE },
 }
