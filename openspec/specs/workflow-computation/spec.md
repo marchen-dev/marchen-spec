@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### 需求: 固定工作流规则计算 artifact 就绪状态
-ChangeManager SHALL 根据固定的 spec-driven 工作流依赖规则，计算每个 artifact 的就绪状态。
+ChangeManager SHALL 根据固定的 full 工作流依赖规则，计算每个 artifact 的就绪状态。
 
 #### 场景: 初始状态（所有 artifact 为 empty）
 - **WHEN** 所有 artifact 状态为 empty 或 no-content

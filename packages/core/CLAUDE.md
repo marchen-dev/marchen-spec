@@ -56,8 +56,8 @@ await workspace.initialize()     // 执行初始化
 ```typescript
 const changes = new ChangeManager(workspace)
 
-await changes.create('my-feature')               // 创建变更（默认 spec-driven）
-await changes.create('my-feature', 'rapid')      // 创建变更（rapid schema）
+await changes.create('my-feature')               // 创建变更（默认 full）
+await changes.create('my-feature', 'lite')       // 创建变更（lite schema）
 await changes.archive('my-feature')      // 归档变更
 await changes.list()                     // 列出所有 open 变更
 await changes.status('my-feature')       // 查询 artifact 内容状态和工作流建议

@@ -132,7 +132,7 @@ export function registerStatusCommand(program: Command): void {
 /**
  * 获取 artifact 的依赖列表
  *
- * 硬编码 spec-driven schema 的依赖关系，用于人类友好输出中
+ * 硬编码 full schema 的依赖关系，用于人类友好输出中
  * 展示被阻塞 artifact 等待的依赖名称。
  *
  * @param id - artifact 标识符

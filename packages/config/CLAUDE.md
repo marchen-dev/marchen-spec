@@ -19,7 +19,7 @@
 ```
 src/
 ├── index.ts         # 配置接口、默认值、统一导出
-├── schema.ts        # Schema 定义（spec-driven + rapid），含 template/instruction
+├── schema.ts        # Schema 定义（full + lite），含 template/instruction
 ├── templates.ts     # Artifact 模板常量（proposal, design, tasks）
 ├── skills.ts        # Skill 模板导出（codegen 生成）
 ├── commands.ts      # Command 模板导出（codegen 生成）
@@ -29,10 +29,12 @@ src/
 templates/
 ├── skills/          # Skill 模板源文件（.md）
 │   ├── propose.md
+│   ├── propose-lite.md
 │   ├── apply.md
 │   └── explore.md
 └── commands/        # Command 模板源文件（.md）
     ├── propose.md
+    ├── propose-lite.md
     ├── apply.md
     └── explore.md
 scripts/
@@ -44,13 +46,13 @@ scripts/
 - `MarchenSpecConfig` - 配置接口 `{ specDirectory: string }`
 - `defaultConfig` - 默认配置 `{ specDirectory: 'marchen' }`
 - `defineMarchenSpecConfig(partial?)` - 合并用户配置与默认值
-- `SCHEMAS` - 内置 schema 映射（spec-driven, rapid）
-- `DEFAULT_SCHEMA_NAME` - 默认 schema 名称 `'spec-driven'`
+- `SCHEMAS` - 内置 schema 映射（full, lite）
+- `DEFAULT_SCHEMA_NAME` - 默认 schema 名称 `'full'`
 - `getSchema(name)` - 按名称查找 schema，不存在时抛 ValidationError
 - `APPLY_INSTRUCTION` - apply 阶段的 LLM 指导文本
 - `PROPOSAL_TEMPLATE` / `DESIGN_TEMPLATE` / `TASKS_TEMPLATE` - 各 artifact 的 Markdown 模板
-- `SKILL_TEMPLATES` - Skill 模板映射（propose, apply, explore）
-- `COMMAND_TEMPLATES` - Command 模板映射（propose, apply, explore）
+- `SKILL_TEMPLATES` - Skill 模板映射（propose, propose-lite, apply, explore）
+- `COMMAND_TEMPLATES` - Command 模板映射（propose, propose-lite, apply, explore）
 
 ## 开发命令
 

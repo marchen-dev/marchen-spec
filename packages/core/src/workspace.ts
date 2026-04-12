@@ -82,7 +82,7 @@ export class Workspace {
     // 写入默认配置
     const configPath = join(this.specDir, 'config.yaml')
     await writeYaml(configPath, {
-      schema: 'spec-driven',
+      schema: 'full',
       context: '',
       perArtifactRules: {},
     })

@@ -42,7 +42,8 @@ marchen init --force  # 跳过确认
 
 ### new 命令
 ```bash
-marchen new <name>    # 创建变更（kebab-case）
+marchen new <name>                 # 创建变更（默认 full schema）
+marchen new <name> --schema lite   # 创建轻量变更（lite schema）
 ```
 
 ### list 命令

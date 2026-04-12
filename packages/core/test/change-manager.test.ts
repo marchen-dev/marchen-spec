@@ -149,7 +149,7 @@ describe('detectContentStatus 内容检测', () => {
 
     vi.mocked(fs.readYaml).mockResolvedValue({
       name: 'my-feature',
-      schema: 'spec-driven',
+      schema: 'full',
       createdAt: '2026-04-05T00:00:00Z',
       status: 'open',
     })
@@ -219,7 +219,7 @@ describe('detectSpecsStatus specs 目录检测', () => {
     vi.mocked(fs.listDir).mockResolvedValue([])
     vi.mocked(fs.readYaml).mockResolvedValue({
       name: 'my-feature',
-      schema: 'spec-driven',
+      schema: 'full',
       createdAt: '2026-04-05T00:00:00Z',
       status: 'open',
     })
@@ -245,7 +245,7 @@ describe('detectSpecsStatus specs 目录检测', () => {
     })
     vi.mocked(fs.readYaml).mockResolvedValue({
       name: 'my-feature',
-      schema: 'spec-driven',
+      schema: 'full',
       createdAt: '2026-04-05T00:00:00Z',
       status: 'open',
     })
@@ -277,7 +277,7 @@ describe('detectSpecsStatus specs 目录检测', () => {
     })
     vi.mocked(fs.readYaml).mockResolvedValue({
       name: 'my-feature',
-      schema: 'spec-driven',
+      schema: 'full',
       createdAt: '2026-04-05T00:00:00Z',
       status: 'open',
     })
@@ -324,7 +324,7 @@ describe('tasks 进度解析', () => {
     vi.mocked(fs.listDir).mockResolvedValue([])
     vi.mocked(fs.readYaml).mockResolvedValue({
       name: 'my-feature',
-      schema: 'spec-driven',
+      schema: 'full',
       createdAt: '2026-04-05T00:00:00Z',
       status: 'open',
     })
@@ -360,7 +360,7 @@ describe('tasks 进度解析', () => {
     vi.mocked(fs.listDir).mockResolvedValue([])
     vi.mocked(fs.readYaml).mockResolvedValue({
       name: 'my-feature',
-      schema: 'spec-driven',
+      schema: 'full',
       createdAt: '2026-04-05T00:00:00Z',
       status: 'open',
     })
@@ -404,7 +404,7 @@ describe('computeWorkflow 工作流计算', () => {
 
     vi.mocked(fs.readYaml).mockResolvedValue({
       name: 'my-feature',
-      schema: 'spec-driven',
+      schema: 'full',
       createdAt: '2026-04-05T00:00:00Z',
       status: 'open',
     })
@@ -540,7 +540,7 @@ describe('changeManager.status 集成', () => {
     })
     vi.mocked(fs.readYaml).mockResolvedValue({
       name: 'my-feature',
-      schema: 'spec-driven',
+      schema: 'full',
       createdAt: '2026-04-05T00:00:00Z',
       status: 'open',
     })
@@ -550,7 +550,7 @@ describe('changeManager.status 集成', () => {
     const result = await manager.status('my-feature')
 
     expect(result.name).toBe('my-feature')
-    expect(result.schema).toBe('spec-driven')
+    expect(result.schema).toBe('full')
     expect(result.artifacts).toHaveLength(4)
     expect(result.workflow).toBeDefined()
     expect(result.workflow.next).toBe('proposal')
@@ -608,13 +608,13 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('my-feature')) return true
       return false
     })
-    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
 
     const result = await manager.getInstructions('my-feature', 'proposal')
 
     expect(result.changeName).toBe('my-feature')
     expect(result.artifactId).toBe('proposal')
-    expect(result.schemaName).toBe('spec-driven')
+    expect(result.schemaName).toBe('full')
     expect(result.changeDir).toBe('/test/root/marchen/changes/my-feature')
     expect(result.outputPath).toBe('proposal.md')
     expect(result.template).toBeTruthy()
@@ -635,7 +635,7 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('proposal.md')) return true
       return false
     })
-    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
       if (path.endsWith('proposal.md')) return proposalContent
       return ''
@@ -658,7 +658,7 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('design.md')) return true
       return false
     })
-    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
       if (path.endsWith('design.md'))
         return '## 背景\n\n当前应用使用硬编码的亮色样式，需要重构为主题系统支持动态切换。'
@@ -684,7 +684,7 @@ describe('changeManager.getInstructions', () => {
       if (path.endsWith('design.md')) return true
       return false
     })
-    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
     vi.mocked(fs.listDir).mockImplementation(async (path: string) => {
       if (path.endsWith('specs') || path.endsWith('specs/'))
         return ['auth', 'theme']
@@ -731,7 +731,7 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
       if (path.endsWith('my-feature')) return true
       return false
     })
-    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
 
     const result = await manager.getApplyInstructions('my-feature')
 
@@ -753,7 +753,7 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
       if (path.endsWith('tasks.md')) return true
       return false
     })
-    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
       if (path.endsWith('tasks.md')) return tasksContent
       return ''
@@ -775,7 +775,7 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
       if (path.endsWith('tasks.md')) return true
       return false
     })
-    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
       if (path.endsWith('tasks.md')) return tasksContent
       return ''
@@ -800,7 +800,7 @@ describe('changeManager.getApplyInstructions apply 指令', () => {
       if (path.endsWith('tasks.md')) return true
       return false
     })
-    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'spec-driven' })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
     vi.mocked(fs.readFile).mockImplementation(async (path: string) => {
       if (path.endsWith('proposal.md')) return proposalContent
       if (path.endsWith('tasks.md')) return tasksContent

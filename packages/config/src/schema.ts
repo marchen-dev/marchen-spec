@@ -7,9 +7,9 @@ import {
 } from './templates.js'
 
 /**
- * rapid schema 的 tasks 模板（带背景章节）
+ * lite schema 的 tasks 模板（带背景章节）
  */
-const RAPID_TASKS_TEMPLATE = `## 背景
+const LITE_TASKS_TEMPLATE = `## 背景
 
 <!-- 简要说明这个变更的目的和方案 -->
 
@@ -31,12 +31,12 @@ export const APPLY_INSTRUCTION = `按 tasks.md 逐个实现任务，完成后勾
 /**
  * 内置 schema 定义
  *
- * spec-driven: 完整工作流 proposal → specs → design → tasks
- * rapid: 轻量工作流，只有 tasks（适合 explore 之后快速执行）
+ * full: 完整工作流 proposal → specs → design → tasks
+ * lite: 轻量工作流，只有 tasks（适合 explore 之后快速执行）
  */
 export const SCHEMAS: Record<string, SchemaDefinition> = {
-  'spec-driven': {
-    name: 'spec-driven',
+  full: {
+    name: 'full',
     artifacts: [
       {
         id: 'proposal',
@@ -85,14 +85,14 @@ export const SCHEMAS: Record<string, SchemaDefinition> = {
       },
     ],
   },
-  rapid: {
-    name: 'rapid',
+  lite: {
+    name: 'lite',
     artifacts: [
       {
         id: 'tasks',
         generates: 'tasks.md',
         requires: [],
-        template: RAPID_TASKS_TEMPLATE,
+        template: LITE_TASKS_TEMPLATE,
         instruction: `根据背景描述，拆分实现任务。
 - 按任务组分组，每组用 ## 标题
 - 每个任务用 checkbox 格式：- [ ] X.Y 描述
@@ -104,7 +104,7 @@ export const SCHEMAS: Record<string, SchemaDefinition> = {
 }
 
 /** 默认 schema 名称 */
-export const DEFAULT_SCHEMA_NAME = 'spec-driven'
+export const DEFAULT_SCHEMA_NAME = 'full'
 
 /**
  * 按名称查找 schema

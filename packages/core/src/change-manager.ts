@@ -65,7 +65,7 @@ export class ChangeManager {
    * 会依次校验：MarchenSpec 是否已初始化、名称格式、是否重名。
    *
    * @param name - 变更名称（kebab-case）
-   * @param schemaName - schema 名称，默认 spec-driven
+   * @param schemaName - schema 名称，默认 full
    * @throws {MarchenSpecError} 未初始化、名称格式错误或变更已存在时抛出
    */
   async create(name: string, schemaName?: string): Promise<void> {

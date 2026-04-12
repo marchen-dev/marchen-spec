@@ -85,7 +85,9 @@ for (const { fileName } of skills) {
   const key = toKey(fileName)
   const constName = `SKILL_${toConstName(fileName)}`
   const dirName = toSkillDirName(fileName)
-  skillLines.push(`  ${key}: { dirName: '${dirName}', content: ${constName} },`)
+  skillLines.push(
+    `  '${key}': { dirName: '${dirName}', content: ${constName} },`,
+  )
 }
 skillLines.push('}')
 skillLines.push('')
@@ -120,7 +122,9 @@ cmdLines.push(
 for (const { fileName } of commands) {
   const key = toKey(fileName)
   const constName = `COMMAND_${toConstName(fileName)}`
-  cmdLines.push(`  ${key}: { fileName: '${fileName}', content: ${constName} },`)
+  cmdLines.push(
+    `  '${key}': { fileName: '${fileName}', content: ${constName} },`,
+  )
 }
 cmdLines.push('}')
 cmdLines.push('')

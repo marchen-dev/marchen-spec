@@ -16,7 +16,7 @@ export function registerNewCommand(program: Command): void {
     .command('new')
     .description('创建一个新的变更')
     .argument('<name>', '变更名称（kebab-case，如 add-dark-mode）')
-    .option('--schema <name>', '工作流 schema', 'spec-driven')
+    .option('--schema <name>', '工作流 schema', 'full')
     .action(async (name: string, options: { schema: string }) => {
       p.intro('MarchenSpec CLI')
 

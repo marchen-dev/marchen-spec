@@ -64,7 +64,7 @@ describe('workspace', () => {
       // 写入 config.yaml
       expect(fs.writeYaml).toHaveBeenCalledWith(
         expect.stringContaining('config.yaml'),
-        expect.objectContaining({ schema: 'spec-driven' }),
+        expect.objectContaining({ schema: 'full' }),
       )
     })
 
@@ -105,7 +105,7 @@ describe('workspace', () => {
         .mock.calls.filter(
           ([path]) => typeof path === 'string' && path.includes('SKILL.md'),
         )
-      expect(skillCalls.length).toBe(6)
+      expect(skillCalls.length).toBe(8)
     })
   })
 })
