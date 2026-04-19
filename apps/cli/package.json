@@ -2,6 +2,7 @@
   "name": "marchen-spec",
   "version": "0.4.1",
   "description": "Spec-driven development CLI",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "marchen": "./dist/index.mjs"

@@ -126,7 +126,7 @@ pnpm check        # lint + typecheck + test
 
 ## 致谢
 
-本项目的规范驱动工作流设计受 [OpenSpec](https://github.com/openspec-dev/openspec) 启发。
+本项目的规范驱动工作流设计受 [OpenSpec](https://github.com/Fission-AI/OpenSpec) 启发。
 
 ## License
 

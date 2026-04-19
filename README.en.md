@@ -126,7 +126,7 @@ pnpm check        # lint + typecheck + test
 
 ## Acknowledgments
 
-The spec-driven workflow design is inspired by [OpenSpec](https://github.com/openspec-dev/openspec).
+The spec-driven workflow design is inspired by [OpenSpec](https://github.com/Fission-AI/OpenSpec).
 
 ## License
 
