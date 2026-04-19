@@ -68,7 +68,7 @@ Lite 模式跳过 proposal/specs/design，直接生成带背景说明的 tasks.m
 - 2026-04-19: [add-user-auth](./archive/2026-04-19-add-user-auth/) — 实现用户认证功能
 ```
 
-这为项目提供了一份结构化的变更历史索引，AI 在探索模式下可以读取它了解项目演进脉络。
+这为项目提供了一份结构化的变更历史索引，AI 在 `/marchen:explore` 探索模式下可以读取它了解项目演进脉络。
 
 ## 工作区结构
 

@@ -68,7 +68,7 @@ When archiving a change, MarchenSpec automatically appends an entry to `marchen/
 - 2026-04-19: [add-user-auth](./archive/2026-04-19-add-user-auth/) — Implement user authentication
 ```
 
-This provides a structured change history index. AI can read it in explore mode to understand project evolution.
+This provides a structured change history index. AI can read it in `/marchen:explore` mode to understand project evolution.
 
 ## Workspace Layout
 
