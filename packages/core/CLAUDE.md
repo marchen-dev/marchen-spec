@@ -39,14 +39,14 @@ src/
 const workspace = new Workspace()      // 默认 cwd
 const workspace = new Workspace(root)  // 指定路径
 
-workspace.root          // 工作区根目录
-workspace.specDir       // marchen/ 路径
-workspace.changeDir     // marchen/changes/ 路径
-workspace.archiveDir    // marchen/archive/ 路径
-workspace.packageBoundaries  // PackageBoundary[]
+workspace.root           // 工作区根目录
+workspace.specDir        // marchen/ 路径
+workspace.changeDir      // marchen/changes/ 路径
+workspace.archiveDir     // marchen/archive/ 路径
+workspace.changelogPath  // marchen/changelog.md 路径
 
 await workspace.isInitialized()  // 检查是否已初始化
-await workspace.initialize()     // 执行初始化
+await workspace.initialize()     // 执行初始化（创建目录 + 生成 skill/command 文件）
 ```
 
 ### ChangeManager 类
@@ -58,7 +58,8 @@ const changes = new ChangeManager(workspace)
 
 await changes.create('my-feature')               // 创建变更（默认 full）
 await changes.create('my-feature', 'lite')       // 创建变更（lite schema）
-await changes.archive('my-feature')      // 归档变更，返回 ArchiveResult
+await changes.archive('my-feature')              // 归档变更，返回 ArchiveResult
+await changes.archive('my-feature', { summary: '一句话摘要' })  // 归档并写入 changelog 摘要
 await changes.list()                     // 列出所有 open 变更
 await changes.status('my-feature')       // 查询 artifact 内容状态和工作流建议
 await changes.getInstructions('my-feature', 'proposal')  // 获取 artifact 创建指令

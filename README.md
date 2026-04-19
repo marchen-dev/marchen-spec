@@ -5,7 +5,6 @@
 规范驱动开发 CLI — 让 AI 按结构化流程先想清楚再动手写代码。
 
 [![npm version](https://img.shields.io/npm/v/marchen-spec)](https://www.npmjs.com/package/marchen-spec)
-[![license](https://img.shields.io/npm/l/marchen-spec)](./LICENSE)
 
 ## 为什么需要它
 

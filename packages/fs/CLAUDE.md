@@ -43,6 +43,7 @@ src/
 **文件 I/O** (`file.ts`):
 - `readFile(path)` - 读取文件（UTF-8）
 - `writeFile(path, content)` - 写入文件（自动创建父目录）
+- `appendFile(path, content)` - 追加内容到文件
 
 **YAML 操作** (`yaml.ts`):
 - `readYaml<T>(path)` - 读取并解析 YAML 文件

@@ -5,7 +5,6 @@
 Spec-driven development CLI — make AI think before it codes, following a structured workflow.
 
 [![npm version](https://img.shields.io/npm/v/marchen-spec)](https://www.npmjs.com/package/marchen-spec)
-[![license](https://img.shields.io/npm/l/marchen-spec)](./LICENSE)
 
 ## Why
 

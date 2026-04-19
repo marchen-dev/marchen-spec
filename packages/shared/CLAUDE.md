@@ -44,6 +44,7 @@ src/
 - `ApplyProgress` - apply 阶段进度 `{ total, completed, remaining }`
 - `InstructionsResult` - 指令结果 `{ changeName, artifactId, outputPath?, template?, instruction, context, unlocks?, state?, progress? }`
 - `ArchiveResult` - 归档结果 `{ name, schema, archivedTo, archivedAt }`
+- `ArchiveOptions` - 归档选项 `{ summary? }`
 
 ## 开发命令
 

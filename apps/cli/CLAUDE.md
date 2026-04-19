@@ -49,18 +49,20 @@ marchen new <name> --schema lite   # 创建轻量变更（lite schema）
 ### list 命令
 ```bash
 marchen list          # 列出所有 open 变更
+marchen list --json   # JSON 输出
 ```
 
 ### archive 命令
 ```bash
-marchen archive <name>         # 归档变更，移动到 archive/ 并更新 metadata
-marchen archive <name> --json  # 输出 JSON 格式（ArchiveResult）
+marchen archive <name>                        # 归档变更
+marchen archive <name> --summary "一句话摘要"  # 归档并写入 changelog 摘要
+marchen archive <name> --json                 # JSON 输出（ArchiveResult）
 ```
 
 ### status 命令
 ```bash
 marchen status <name>         # 查看 artifact 内容状态和工作流建议
-marchen status <name> --json  # 输出 JSON 格式（给 Skill 消费）
+marchen status <name> --json  # JSON 输出（给 Skill 消费）
 ```
 
 ### instructions 命令
