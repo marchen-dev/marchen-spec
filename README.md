@@ -1,44 +1,22 @@
+[English](./README.en.md)
+
 # MarchenSpec
 
-规范驱动开发 CLI — 让 AI 按 proposal → specs → design → tasks 的流程，先想清楚再动手写代码。
+规范驱动开发 CLI — 让 AI 按结构化流程先想清楚再动手写代码。
 
-## 它做什么
+[![npm version](https://img.shields.io/npm/v/marchen-spec)](https://www.npmjs.com/package/marchen-spec)
+[![license](https://img.shields.io/npm/l/marchen-spec)](./LICENSE)
 
-MarchenSpec 管理"变更"的生命周期。每个变更是一个目录，包含一组 artifact：
+## 为什么需要它
 
-```
-marchenspec/changes/add-user-auth/
-├── .metadata.yaml   # 元数据（schema、状态、创建时间）
-├── proposal.md      # 动机和变更内容
-├── specs/           # 每个能力的需求规格
-│   └── login-flow/
-│       └── spec.md
-├── design.md        # 技术方案
-└── tasks.md         # 实现任务清单
-```
+AI 写代码很快，但容易"想到哪写到哪"。MarchenSpec 给 AI 加了一层思考框架：
 
-CLI 提供 JSON API，AI Skills 消费这些 API 驱动工作流：
+- 先写 proposal 明确动机和范围
+- 再写 specs 定义需求和验收标准
+- 然后 design 确定技术方案
+- 最后拆 tasks 逐步实现
 
-```
-CLI (marchen)                    AI Skills (.claude/skills/)
-─────────────                    ──────────────────────────
-marchen new <name>         ←──  /marchen:propose      创建变更 + 填充所有 artifact
-marchen status <name>      ←──  /marchen:propose-lite  轻量变更，只填 tasks.md
-marchen instructions ...   ←──  /marchen:apply         逐个实现 task
-marchen archive <name>          /marchen:explore       思考伙伴，不写代码
-```
-
-## 两种 Schema
-
-| Schema | Artifact 流程 | 适用场景 |
-|--------|--------------|---------|
-| `full`（默认） | proposal → specs → design → tasks | 新功能、架构变更 |
-| `lite` | tasks（含背景章节） | bug 修复、小改动 |
-
-```bash
-marchen new add-dark-mode              # full schema
-marchen new fix-typo --schema lite     # lite schema
-```
+每一步都有 artifact 留痕，可追溯、可回顾。
 
 ## 快速开始
 
@@ -50,17 +28,56 @@ npm install -g marchen-spec
 marchen init
 
 # 创建变更（AI 会填充所有 artifact）
-# 在 Claude Code 中执行：
 /marchen:propose add-user-auth
 
 # 开始实现
 /marchen:apply add-user-auth
 
 # 完成后归档
-marchen archive add-user-auth
+/marchen:archive add-user-auth
 ```
 
 `marchen init` 会生成 `.claude/skills/` 和 `.claude/commands/` 文件，Claude Code 可以直接使用。
+
+## 两种 Schema
+
+| Schema | 流程 | 适用场景 |
+|--------|------|---------|
+| `full`（默认） | proposal → specs → design → tasks | 新功能、架构变更 |
+| `lite` | tasks（含背景章节） | bug 修复、小改动、快速迭代 |
+
+```bash
+marchen new add-dark-mode              # full schema
+marchen new fix-typo --schema lite     # lite schema
+```
+
+Lite 模式跳过 proposal/specs/design，直接生成带背景说明的 tasks.md，适合不需要完整规范流程的小变更。
+
+## 变更日志
+
+归档变更时，MarchenSpec 自动在 `marchen/changelog.md` 中追加一行记录：
+
+```markdown
+- 2026-04-19: [add-user-auth](./archive/2026-04-19-add-user-auth/) — 实现用户认证功能
+```
+
+这为项目提供了一份结构化的变更历史索引，AI 在探索模式下可以读取它了解项目演进脉络。
+
+## 工作区结构
+
+```
+marchen/
+├── changes/          # 进行中的变更
+│   └── add-user-auth/
+│       ├── .metadata.yaml
+│       ├── proposal.md
+│       ├── specs/
+│       ├── design.md
+│       └── tasks.md
+├── archive/          # 已归档的变更
+├── changelog.md      # 变更日志索引
+└── config.yaml       # 配置
+```
 
 ## CLI 命令
 
@@ -70,8 +87,18 @@ marchen new <name> [--schema full|lite]   # 创建变更
 marchen list [--json]                     # 列出所有 open 变更
 marchen status <name> [--json]            # 查看 artifact 状态和工作流建议
 marchen instructions <name> <artifact>    # 获取 artifact 创建指令（JSON）
-marchen archive <name>                    # 归档已完成的变更
+marchen archive <name> [--summary <text>] # 归档变更并写入 changelog
 ```
+
+## AI Skills
+
+| Skill | 用途 |
+|-------|------|
+| `/marchen:propose` | 创建变更，填充所有 artifact |
+| `/marchen:propose-lite` | 轻量变更，只填 tasks.md |
+| `/marchen:apply` | 逐个实现 task |
+| `/marchen:explore` | 思考伙伴，探索问题空间 |
+| `/marchen:archive` | 检查完成度后归档 |
 
 ## 项目结构
 
@@ -95,9 +122,11 @@ pnpm build        # 构建所有包
 pnpm dev          # watch 模式
 pnpm test         # 运行测试
 pnpm check        # lint + typecheck + test
-pnpm lint:fix     # Lint 自动修复
-pnpm format       # 格式化
 ```
+
+## 致谢
+
+本项目的规范驱动工作流设计受 [OpenSpec](https://github.com/openspec-dev/openspec) 启发。
 
 ## License
 
