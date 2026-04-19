@@ -26,15 +26,23 @@ npm install -g marchen-spec
 
 # 在项目根目录初始化
 marchen init
+```
 
-# 创建变更（AI 会填充所有 artifact）
-/marchen:propose add-user-auth
+在 Claude Code 中使用：
 
-# 开始实现
-/marchen:apply add-user-auth
+```bash
+# 先探索想法，理清思路
+/marchen:explore 我想给项目加暗色模式
 
-# 完成后归档
-/marchen:archive add-user-auth
+# 想清楚后，选择合适的模式：
+
+# 轻量模式 — 一步到位：创建变更 → 实现 → 归档
+/marchen:lite
+
+# 完整模式 — 适合复杂功能，分步推进
+/marchen:propose                     # 生成 proposal → specs → design → tasks
+/marchen:apply                       # 逐个实现任务
+/marchen:archive                     # 完成后归档
 ```
 
 `marchen init` 会生成 `.claude/skills/` 和 `.claude/commands/` 文件，Claude Code 可以直接使用。

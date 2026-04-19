@@ -26,15 +26,23 @@ npm install -g marchen-spec
 
 # Initialize in your project root
 marchen init
+```
 
-# Create a change (AI fills all artifacts)
-/marchen:propose add-user-auth
+Use in Claude Code:
 
-# Start implementing
-/marchen:apply add-user-auth
+```bash
+# Explore ideas, clarify your thinking
+/marchen:explore I want to add dark mode
 
-# Archive when done
-/marchen:archive add-user-auth
+# When ready, pick the right mode:
+
+# Lightweight — all-in-one: create → implement → archive
+/marchen:lite
+
+# Full mode — for complex features, step by step
+/marchen:propose                              # Generate proposal → specs → design → tasks
+/marchen:apply                            # Implement tasks one by one
+/marchen:archive                          # Archive when done
 ```
 
 `marchen init` generates `.claude/skills/` and `.claude/commands/` files for Claude Code integration.
