@@ -1,6 +1,6 @@
 # archive-skill
 
-## ADDED Requirements
+## 需求
 
 ### 需求: marchen init SHALL 生成 archive skill 模板
 
@@ -37,6 +37,25 @@ skill MUST 调用 `marchen status <name> --json` 检查 artifact 和 task 完成
 - **THEN** 显示警告列出未完成项
 - **AND** 用 AskUserQuestion 确认是否继续
 - **AND** 用户确认后执行归档，不阻塞
+
+### 需求: 归档变更
+
+系统 SHALL 将已完成的变更移动到 archive 目录，更新元数据，并写入 changelog 条目。
+
+#### 场景: 带 summary 归档
+
+- **WHEN** 用户执行 `marchen archive <name> --summary "摘要文本"`
+- **THEN** 移动变更到 `archive/YYYY-MM-DD-<name>/`，更新 metadata status 为 archived，追加带摘要的条目到 changelog.md
+
+#### 场景: 不带 summary 归档
+
+- **WHEN** 用户执行 `marchen archive <name>`
+- **THEN** 移动变更到 `archive/YYYY-MM-DD-<name>/`，更新 metadata status 为 archived，追加仅含名称链接的条目到 changelog.md
+
+#### 场景: JSON 输出
+
+- **WHEN** 用户执行 `marchen archive <name> --json`
+- **THEN** 输出 JSON 格式的 ArchiveResult
 
 ### 需求: archive skill SHALL 在未提供名称时让用户选择
 

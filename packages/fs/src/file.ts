@@ -28,3 +28,11 @@ export async function writeFile(path: string, content: string): Promise<void> {
   await ensureDir(dirname(path))
   await nodeFs.writeFile(path, content, 'utf-8')
 }
+
+/**
+ * 追加内容到文件末尾（UTF-8），自动创建父目录
+ */
+export async function appendFile(path: string, content: string): Promise<void> {
+  await ensureDir(dirname(path))
+  await nodeFs.appendFile(path, content, 'utf-8')
+}

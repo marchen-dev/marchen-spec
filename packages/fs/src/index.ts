@@ -1,5 +1,5 @@
 export { ensureDir, exists, listDir, moveDir } from './directory.js'
-export { readFile, writeFile } from './file.js'
+export { appendFile, readFile, writeFile } from './file.js'
 export {
   getArchiveDirectory,
   getChangeDirectory,

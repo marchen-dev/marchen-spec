@@ -31,6 +31,9 @@ export class Workspace {
   /** 归档目录路径（marchenspec/archive/） */
   readonly archiveDir: string
 
+  /** 变更日志路径（marchenspec/changelog.md） */
+  readonly changelogPath: string
+
   /** 包边界信息 */
   readonly packageBoundaries: readonly PackageBoundary[] = [
     { name: '@marchen-spec/shared', dependsOn: [] },
@@ -54,6 +57,7 @@ export class Workspace {
     this.specDir = getSpecDirectory(this.root)
     this.changeDir = getChangeDirectory(this.root)
     this.archiveDir = getArchiveDirectory(this.root)
+    this.changelogPath = join(this.specDir, 'changelog.md')
   }
 
   /**
@@ -90,6 +94,11 @@ export class Workspace {
     // 创建 .gitkeep 占位文件
     await writeFile(join(this.changeDir, '.gitkeep'), '')
     await writeFile(join(this.archiveDir, '.gitkeep'), '')
+
+    // 创建 changelog.md（已存在时跳过）
+    if (!(await exists(this.changelogPath))) {
+      await writeFile(this.changelogPath, '# 变更日志\n')
+    }
 
     // 生成 skill 和 command 文件到 .claude/ 目录
     await this.generateSkills()

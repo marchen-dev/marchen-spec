@@ -205,3 +205,11 @@ export interface ArchiveResult {
   /** 归档时间（ISO 8601） */
   readonly archivedAt: string
 }
+
+/**
+ * 归档操作选项
+ */
+export interface ArchiveOptions {
+  /** 变更摘要（写入 changelog） */
+  readonly summary?: string | undefined
+}

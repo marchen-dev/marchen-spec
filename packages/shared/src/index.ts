@@ -13,6 +13,7 @@ export {
 export type {
   ApplyProgress,
   ApplyState,
+  ArchiveOptions,
   ArchiveResult,
   ArtifactContentStatus,
   ArtifactDefinition,

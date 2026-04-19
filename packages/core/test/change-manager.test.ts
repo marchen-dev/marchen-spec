@@ -8,6 +8,7 @@ vi.mock('@marchen-spec/fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@marchen-spec/fs')>()
   return {
     ...actual,
+    appendFile: vi.fn().mockResolvedValue(undefined),
     ensureDir: vi.fn().mockResolvedValue(undefined),
     writeFile: vi.fn().mockResolvedValue(undefined),
     writeYaml: vi.fn().mockResolvedValue(undefined),
@@ -876,5 +877,81 @@ describe('changeManager.archive 归档变更', () => {
       expect.objectContaining({ status: 'archived' }),
     )
     expect(fs.moveDir).toHaveBeenCalledTimes(1)
+  })
+
+  it('归档时应该写入 changelog 条目（无 summary）', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchen')) return true
+      if (path.includes('changes') && path.endsWith('my-feature')) return true
+      return false
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
+
+    await manager.archive('my-feature')
+
+    // 应该先创建 changelog.md（因为 exists 返回 false）
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining('changelog.md'),
+      '# 变更日志\n',
+    )
+    // 应该追加条目
+    expect(fs.appendFile).toHaveBeenCalledWith(
+      expect.stringContaining('changelog.md'),
+      expect.stringMatching(
+        /^- \d{4}-\d{2}-\d{2}: \[my-feature\]\(\.\/archive\/.*\)\n$/,
+      ),
+    )
+  })
+
+  it('归档时应该写入带 summary 的 changelog 条目', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchen')) return true
+      if (path.includes('changes') && path.endsWith('my-feature')) return true
+      return false
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
+
+    await manager.archive('my-feature', { summary: '实现了用户认证' })
+
+    expect(fs.appendFile).toHaveBeenCalledWith(
+      expect.stringContaining('changelog.md'),
+      expect.stringContaining('— 实现了用户认证'),
+    )
+  })
+
+  it('summary 中的换行符应该被替换为空格', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchen')) return true
+      if (path.includes('changes') && path.endsWith('my-feature')) return true
+      return false
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
+
+    await manager.archive('my-feature', { summary: '第一行\n第二行' })
+
+    expect(fs.appendFile).toHaveBeenCalledWith(
+      expect.stringContaining('changelog.md'),
+      expect.stringContaining('— 第一行 第二行'),
+    )
+  })
+
+  it('changelog.md 已存在时不应该重新创建', async () => {
+    vi.mocked(fs.exists).mockImplementation(async (path: string) => {
+      if (path.endsWith('marchen')) return true
+      if (path.includes('changes') && path.endsWith('my-feature')) return true
+      if (path.endsWith('changelog.md')) return true
+      return false
+    })
+    vi.mocked(fs.readYaml).mockResolvedValue({ schema: 'full' })
+
+    await manager.archive('my-feature')
+
+    // writeFile 不应该被调用来创建 changelog.md
+    expect(fs.writeFile).not.toHaveBeenCalledWith(
+      expect.stringContaining('changelog.md'),
+      expect.anything(),
+    )
+    // 但 appendFile 应该被调用
+    expect(fs.appendFile).toHaveBeenCalledTimes(1)
   })
 })

@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
+  appendFile,
   ensureDir,
   exists,
   listDir,
@@ -88,6 +89,27 @@ describe('fs 文件系统操作', () => {
 
     it('目录不存在时应该抛出 MarchenSpecError', async () => {
       await expect(listDir(join(testDir, 'nope'))).rejects.toThrow('目录不存在')
+    })
+  })
+
+  describe('appendFile 追加文件', () => {
+    it('应该追加内容到已有文件', async () => {
+      const file = join(testDir, 'log.txt')
+      await writeFile(file, '第一行\n')
+      await appendFile(file, '第二行\n')
+      expect(await readFile(file)).toBe('第一行\n第二行\n')
+    })
+
+    it('文件不存在时应该创建并写入', async () => {
+      const file = join(testDir, 'new.txt')
+      await appendFile(file, '内容')
+      expect(await readFile(file)).toBe('内容')
+    })
+
+    it('应该自动创建父目录', async () => {
+      const file = join(testDir, 'deep', 'dir', 'file.txt')
+      await appendFile(file, '深层')
+      expect(await readFile(file)).toBe('深层')
     })
   })
 

@@ -1,6 +1,7 @@
 import type {
   ApplyProgress,
   ApplyState,
+  ArchiveOptions,
   ArchiveResult,
   ArtifactContentStatus,
   ArtifactStatusDetail,
@@ -20,12 +21,14 @@ import {
   getSchema,
 } from '@marchen-spec/config'
 import {
+  appendFile,
   ensureDir,
   exists,
   listDir,
   moveDir,
   readFile,
   readYaml,
+  writeFile,
   writeYaml,
 } from '@marchen-spec/fs'
 import {
@@ -115,14 +118,19 @@ export class ChangeManager {
    * 归档一个已完成的变更
    *
    * 将变更目录从 marchenspec/changes/ 移动到 marchenspec/archive/，
-   * 目标目录名格式为 YYYY-MM-DD-<name>。同时更新元数据的 status 和 archivedAt。
+   * 目标目录名格式为 YYYY-MM-DD-<name>。同时更新元数据的 status 和 archivedAt，
+   * 并追加一行条目到 changelog.md。
    *
    * @param name - 变更名称
+   * @param options - 归档选项（可选 summary）
    * @returns 归档结果
    * @throws {ValidationError} 变更不存在或目标目录已存在时抛出
    * @throws {StateError} 未初始化时抛出
    */
-  async archive(name: string): Promise<ArchiveResult> {
+  async archive(
+    name: string,
+    options?: ArchiveOptions,
+  ): Promise<ArchiveResult> {
     await this.ensureInitialized()
 
     const changeDir = join(this.workspace.changeDir, name)
@@ -153,12 +161,46 @@ export class ChangeManager {
     // 移动到 archive 目录
     await moveDir(changeDir, archiveDir)
 
+    // 写入 changelog
+    await this.appendChangelog(name, datePrefix, options?.summary)
+
     return {
       name,
       schema: metadata.schema,
       archivedTo: archiveDir,
       archivedAt,
     }
+  }
+
+  /**
+   * 追加一行条目到 changelog.md
+   *
+   * changelog.md 不存在时自动创建（兼容未 re-init 的旧项目）。
+   * summary 写入前会 trim 并替换换行为空格。
+   *
+   * @param name - 变更名称
+   * @param datePrefix - 日期前缀（YYYY-MM-DD）
+   * @param summary - 可选摘要文本
+   */
+  private async appendChangelog(
+    name: string,
+    datePrefix: string,
+    summary?: string,
+  ): Promise<void> {
+    const changelogPath = this.workspace.changelogPath
+
+    // changelog.md 不存在时先创建
+    if (!(await exists(changelogPath))) {
+      await writeFile(changelogPath, '# 变更日志\n')
+    }
+
+    const link = `[${name}](./archive/${datePrefix}-${name}/)`
+    const sanitizedSummary = summary?.trim().replace(/[\r\n]+/g, ' ')
+    const entry = sanitizedSummary
+      ? `- ${datePrefix}: ${link} — ${sanitizedSummary}`
+      : `- ${datePrefix}: ${link}`
+
+    await appendFile(changelogPath, `${entry}\n`)
   }
 
   /**
