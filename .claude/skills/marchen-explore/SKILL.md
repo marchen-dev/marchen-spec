@@ -1,8 +1,6 @@
 ---
-name: "Marchen: Explore"
-description: 进入探索模式 — 思考想法、调查问题、厘清需求
-category: Workflow
-tags: [workflow, explore, thinking]
+name: marchen-explore
+description: 进入探索模式 — 思考想法、调查问题、厘清需求。适用于用户想在动手之前先理清思路。
 ---
 
 进入探索模式。深入思考，自由可视化，跟随对话走向任何方向。

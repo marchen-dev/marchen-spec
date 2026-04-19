@@ -95,7 +95,7 @@ marchen archive <name> [--summary <text>] # Archive change and write to changelo
 | Skill | Purpose |
 |-------|---------|
 | `/marchen:propose` | Create a change, fill all artifacts |
-| `/marchen:propose-lite` | Lightweight change, tasks only |
+| `/marchen:lite` | One-shot lightweight change (create → implement → archive) |
 | `/marchen:apply` | Implement tasks one by one |
 | `/marchen:explore` | Thinking partner, explore problem space |
 | `/marchen:archive` | Check completion and archive |

@@ -1,8 +1,6 @@
 ---
-name: "Marchen: Archive"
-description: 归档已完成的变更
-category: Workflow
-tags: [workflow, archive]
+name: marchen-archive
+description: 归档已完成的变更。检查完成度后执行归档，适用于实现完毕后收尾。
 ---
 
 归档已完成的变更，检查完成度后执行归档。
@@ -51,7 +49,7 @@ tags: [workflow, archive]
 
    解析返回的 JSON 获取归档结果。
 
-5. **显示结果**
+4. **显示结果**
 
    ```
    变更 "<name>" 已归档

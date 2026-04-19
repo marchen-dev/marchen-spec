@@ -95,7 +95,7 @@ marchen archive <name> [--summary <text>] # 归档变更并写入 changelog
 | Skill | 用途 |
 |-------|------|
 | `/marchen:propose` | 创建变更，填充所有 artifact |
-| `/marchen:propose-lite` | 轻量变更，只填 tasks.md |
+| `/marchen:lite` | 一键式轻量变更（创建 → 实现 → 询问归档） |
 | `/marchen:apply` | 逐个实现 task |
 | `/marchen:explore` | 思考伙伴，探索问题空间 |
 | `/marchen:archive` | 检查完成度后归档 |

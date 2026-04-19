@@ -124,15 +124,19 @@ tags: [workflow, archive]
    - 用 **AskUserQuestion** 确认是否继续
    - 用户确认后继续，不阻塞
 
-3. **执行归档**
+3. **生成摘要**
+
+   读取 \`marchen/changes/<name>/proposal.md\`，从中生成一句话中文摘要（≤50字），概括这次变更做了什么。摘要应包含关键语义词，便于后续 AI 检索。
+
+4. **执行归档**
 
    \`\`\`bash
-   marchen archive <name> --json
+   marchen archive <name> --summary "<生成的摘要>" --json
    \`\`\`
 
    解析返回的 JSON 获取归档结果。
 
-4. **显示结果**
+5. **显示结果**
 
    \`\`\`
    变更 "<name>" 已归档
@@ -235,14 +239,24 @@ tags: [workflow, explore, thinking]
 
 ### 检查上下文
 
-开始时快速检查现有状态：
+开始时快速检查现有状态和历史：
+
+1. 当前变更：
 \`\`\`bash
 marchen list --json
 \`\`\`
 
+2. 变更历史：
+\`\`\`bash
+cat marchen/changelog.md
+\`\`\`
+
+这是项目所有已归档变更的索引。如果某条与当前讨论相关，读取对应 archive 目录下的 proposal.md 或 design.md 了解详情。
+
 这告诉你：
 - 是否有进行中的变更
 - 它们的名称、schema 和状态
+- 项目过去做过哪些变更
 - 用户可能在做什么
 
 如果用户提到了特定变更名称，读取它的 artifact 作为上下文。
@@ -324,24 +338,19 @@ marchen list --json
 - **要质疑假设** — 包括用户的和你自己的
 `
 
-export const COMMAND_PROPOSE_LITE = `---
-name: "Marchen: Propose Lite"
-description: 快速创建轻量变更，只需填写任务清单
+export const COMMAND_LITE = `---
+name: "Marchen: Lite"
+description: 一键式轻量变更流程。创建 lite 变更、实现任务、询问归档，一气呵成
 category: Workflow
 tags: [workflow, lite]
 ---
 
-快速创建轻量变更 — 使用 lite schema，只生成 tasks.md。
+一键式轻量变更 — 使用 lite schema 创建变更，自动实现任务，完成后询问归档。
 适合 bug 修复、小改动、explore 之后的快速执行。
-
-只创建：
-- tasks.md（背景 + 任务清单）
-
-完成后可用 /marchen:apply 开始实现。
 
 ---
 
-**输入**：\`/marchen:propose-lite\` 后面跟变更名称（kebab-case）或变更描述。
+**输入**：\`/marchen:lite\` 后面跟变更名称（kebab-case）或变更描述。
 
 **流程**
 
@@ -394,18 +403,64 @@ tags: [workflow, lite]
 
    如果用户描述太模糊，用 **AskUserQuestion** 澄清关键信息。
 
-5. **显示结果**
+5. **开始实现**
+
+   获取实现指令：
 
    \`\`\`bash
-   marchen status <name>
+   marchen instructions <name> apply --json
    \`\`\`
 
-**输出**
+   返回 JSON 包含：
+   - \`state\`：\`"ready"\` / \`"blocked"\` / \`"all_done"\`
+   - \`progress\`：\`{ total, completed, remaining }\`
+   - \`context\`：所有 artifact 的信息数组
+   - \`instruction\`：实现指引
+   - \`changeDir\`：变更目录绝对路径
 
-完成后显示：
-- 变更名称和目录位置
-- 已创建的 tasks.md 概要（任务数量）
-- 提示："任务清单已就绪，可以用 \`/marchen:apply\` 开始实现。"
+   显示："变更: \`<name>\` | 任务: 0/N | 开始实现..."
+
+   对每个未完成任务：
+   - 显示 "任务 N/M: <描述>"
+   - 实现代码改动
+   - 在 tasks.md 中勾选：\`- [ ]\` → \`- [x]\`
+     文件路径：\`<changeDir>/tasks.md\`
+   - 显示 "✓ 完成"
+   - 继续下一个
+
+   **暂停条件：**
+   - 任务不清晰 → 询问用户
+   - 发现设计问题 → 建议更新 artifact
+   - 遇到错误或阻塞 → 报告并等待
+   - 用户中断
+
+   暂停时显示："暂停于任务 N/M: <原因>"，流程结束。
+
+6. **全部完成 → 询问归档**
+
+   所有任务完成后，用 **AskUserQuestion** 询问：
+
+   > "全部任务已完成 (N/N)，是否归档这个变更？"
+   > - 归档
+   > - 暂不归档
+
+   **如果用户选择归档：**
+
+   读取 \`marchen/changes/<name>/tasks.md\` 的背景段，生成一句话中文摘要（≤50字）。
+
+   \`\`\`bash
+   marchen archive <name> --summary "<摘要>" --json
+   \`\`\`
+
+   显示：
+   \`\`\`
+   变更 "<name>" 已归档
+   归档到: <archivedTo>
+   \`\`\`
+
+   **如果用户选择暂不归档：**
+
+   显示："好的，后续可以用 \`/marchen:archive <name>\` 归档。"
 
 **护栏**
 
@@ -414,7 +469,11 @@ tags: [workflow, lite]
 - 任务粒度要小到一个会话内能完成
 - 如果上下文关键信息不清楚，询问用户；但小疑问优先做合理判断，保持节奏
 - 已存在同名变更时必须询问用户，不要覆盖
-- \`instruction\` 是给你的指引，不要把它原样复制到 tasks.md 中
+- 实现前必须读 context 中的 artifact 内容
+- 每完成一个任务立即勾选 checkbox，不要攒着
+- 改动最小化，只做任务要求的事
+- 不确定就暂停问，不要猜
+- \`instruction\` 是给你的指引，不要把它原样复制到代码注释或 tasks.md 中
 - 使用 AskUserQuestion 时，选项不超过 4 个
 `
 
@@ -551,9 +610,6 @@ export const COMMAND_TEMPLATES: Record<string, CommandTemplate> = {
   apply: { fileName: 'apply.md', content: COMMAND_APPLY },
   archive: { fileName: 'archive.md', content: COMMAND_ARCHIVE },
   explore: { fileName: 'explore.md', content: COMMAND_EXPLORE },
-  'propose-lite': {
-    fileName: 'propose-lite.md',
-    content: COMMAND_PROPOSE_LITE,
-  },
+  lite: { fileName: 'lite.md', content: COMMAND_LITE },
   propose: { fileName: 'propose.md', content: COMMAND_PROPOSE },
 }
