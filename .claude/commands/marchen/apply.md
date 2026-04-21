@@ -66,7 +66,7 @@ tags: [workflow, implementation]
 5. **显示结果**
 
    全部完成时：
-   "全部完成 (N/N)，可以用 `/marchen:archive` 归档。"
+   "全部完成 (N/N)，可以用 `/marchen:review` 检查实现，或直接 `/marchen:archive` 归档。"
 
    暂停时：
    "暂停于任务 N/M: <原因>"

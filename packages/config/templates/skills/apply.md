@@ -64,7 +64,7 @@ description: 按变更的 tasks.md 逐个实现任务。适用于用户想按任
 5. **显示结果**
 
    全部完成时：
-   "全部完成 (N/N)，可以用 `marchen archive <name>` 归档。"
+   "全部完成 (N/N)，可以用 `marchen review <name>` 检查实现，或直接 `marchen archive <name>` 归档。"
 
    暂停时：
    "暂停于任务 N/M: <原因>"

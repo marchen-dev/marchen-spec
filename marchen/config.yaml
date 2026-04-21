@@ -2,6 +2,5 @@ schema: full
 context: ''
 providers:
   - claude-code
-  - codex
 perArtifactRules: {}
 version: 0.6.1
