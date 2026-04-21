@@ -20,31 +20,40 @@ Every step produces an artifact — traceable, reviewable, and reusable.
 ## Quick Start
 
 ```bash
-# Install
 npm install -g marchen-spec
 
-# Initialize in your project root
+# Initialize in your project root, pick your AI tools
 marchen init
 ```
 
-Use in Claude Code:
+`marchen init` lets you choose which AI coding tools to integrate, then generates the corresponding skill files.
+
+## Supported AI Tools
+
+Claude Code · Codex · Cursor · Windsurf · GitHub Copilot · Gemini CLI · Kiro · OpenCode · Kilo Code · Antigravity
+
+You can select multiple tools during `marchen init`. All tools share the same SKILL.md content.
+
+## Usage
+
+MarchenSpec integrates with AI coding tools via [Agent Skills](https://github.com/anthropics/agent-skills). After initialization, use the skills directly in your tool:
 
 ```bash
 # Explore ideas, clarify your thinking
-/marchen:explore I want to add dark mode
+marchen:explore I want to add dark mode
 
 # When ready, pick the right mode:
 
 # Lightweight — all-in-one: create → implement → archive
-/marchen:lite
+marchen:lite
 
 # Full mode — for complex features, step by step
-/marchen:propose                              # Generate proposal → specs → design → tasks
-/marchen:apply                            # Implement tasks one by one
-/marchen:archive                          # Archive when done
+marchen:propose          # Generate proposal → specs → design → tasks
+marchen:apply            # Implement tasks one by one
+marchen:archive          # Archive when done
 ```
 
-`marchen init` generates `.claude/skills/` and `.claude/commands/` files for Claude Code integration.
+> Trigger syntax varies by tool: Claude Code uses `/marchen:propose`, Cursor uses `/marchen-propose`, etc. Refer to your tool's skill invocation docs.
 
 ## Two Schemas
 
@@ -58,17 +67,16 @@ marchen new add-dark-mode              # full schema
 marchen new fix-typo --schema lite     # lite schema
 ```
 
-Lite mode skips proposal/specs/design and generates a tasks.md with embedded context — ideal for changes that don't need the full spec workflow.
+## CLI Commands
 
-## Changelog
-
-When archiving a change, MarchenSpec automatically appends an entry to `marchen/changelog.md`:
-
-```markdown
-- 2026-04-19: [add-user-auth](./archive/2026-04-19-add-user-auth/) — Implement user authentication
+```bash
+marchen init                              # Initialize workspace, choose AI tool integrations
+marchen new <name> [--schema full|lite]   # Create a change
+marchen list [--json]                     # List all open changes
+marchen status <name> [--json]            # View artifact status and workflow suggestions
+marchen instructions <name> <artifact>    # Get artifact creation instructions (JSON)
+marchen archive <name> [--summary <text>] # Archive change and write to changelog
 ```
-
-This provides a structured change history index. AI can read it in `/marchen:explore` mode to understand project evolution.
 
 ## Workspace Layout
 
@@ -83,45 +91,22 @@ marchen/
 │       └── tasks.md
 ├── archive/          # Archived changes
 ├── changelog.md      # Change history index
-└── config.yaml       # Configuration
+└── config.yaml       # Configuration (includes provider selection)
 ```
 
-## CLI Commands
+Archiving a change automatically appends an entry to `changelog.md`, providing a structured change history for the project.
 
-```bash
-marchen init                              # Initialize workspace + generate AI skill files
-marchen new <name> [--schema full|lite]   # Create a change
-marchen list [--json]                     # List all open changes
-marchen status <name> [--json]            # View artifact status and workflow suggestions
-marchen instructions <name> <artifact>    # Get artifact creation instructions (JSON)
-marchen archive <name> [--summary <text>] # Archive change and write to changelog
-```
-
-## AI Skills
-
-| Skill | Purpose |
-|-------|---------|
-| `/marchen:propose` | Create a change, fill all artifacts |
-| `/marchen:lite` | One-shot lightweight change (create → implement → archive) |
-| `/marchen:apply` | Implement tasks one by one |
-| `/marchen:explore` | Thinking partner, explore problem space |
-| `/marchen:archive` | Check completion and archive |
-
-## Project Structure
+## Development
 
 pnpm monorepo with Turborepo orchestration:
 
 ```
 apps/cli          CLI entry (commander + @clack/prompts)
 packages/core     Business logic (Workspace + ChangeManager)
-packages/config   Schema definitions, templates, configuration
+packages/config   Schema definitions, templates, provider registry
 packages/fs       File system operations
-packages/shared   Shared types, constants, errors
+packages/shared   Shared types, constants
 ```
-
-Dependency direction: `cli → core → config / fs → shared`
-
-## Development
 
 ```bash
 pnpm install      # Install dependencies

@@ -605,9 +605,9 @@ export interface SkillTemplate {
 
 /** 所有 skill 模板 */
 export const SKILL_TEMPLATES: Record<string, SkillTemplate> = {
-  'apply': { dirName: 'marchen-apply', content: SKILL_APPLY },
-  'archive': { dirName: 'marchen-archive', content: SKILL_ARCHIVE },
-  'explore': { dirName: 'marchen-explore', content: SKILL_EXPLORE },
-  'lite': { dirName: 'marchen-lite', content: SKILL_LITE },
-  'propose': { dirName: 'marchen-propose', content: SKILL_PROPOSE },
+  apply: { dirName: 'marchen-apply', content: SKILL_APPLY },
+  archive: { dirName: 'marchen-archive', content: SKILL_ARCHIVE },
+  explore: { dirName: 'marchen-explore', content: SKILL_EXPLORE },
+  lite: { dirName: 'marchen-lite', content: SKILL_LITE },
+  propose: { dirName: 'marchen-propose', content: SKILL_PROPOSE },
 }
