@@ -256,10 +256,19 @@ cat marchen/changelog.md
 
 ### 没有变更时
 
-自由思考。当洞察结晶时，你可以提议：
+自由思考。当洞察结晶时，根据复杂度推荐下一步：
 
-- "想法差不多成型了。要用 \`/marchen:propose\` 创建变更吗？"
-- 或者继续探索——不急于形式化
+**判断标准：**
+- \`/marchen:lite\` — bug 修复、小改动、单一任务组、不需要设计文档
+- \`/marchen:propose\` — 新功能、多步骤、需要 design/specs、涉及多模块
+
+**推荐方式：** 直接在回复中输出推荐，说明理由，让用户自行输入命令。示例：
+
+> 想法差不多成型了。这个改动比较简单（只涉及一个文件的小调整），建议用 \`/marchen:lite\` 直接走轻量流程。
+>
+> 如果你觉得需要更完整的设计文档，也可以用 \`/marchen:propose\`。
+
+根据讨论内容给出你的推荐和理由，但让用户自己决定输入哪个命令。
 
 ### 有变更时
 
@@ -310,7 +319,7 @@ cat marchen/changelog.md
 
 没有固定的结束方式。探索可能：
 
-- **流向 proposal**："准备好了？我可以用 \`/marchen:propose\` 创建变更。"
+- **流向下一阶段**：用 **AskUserQuestion** 提供 \`/marchen:lite\` 和 \`/marchen:propose\` 选项，附带推荐理由
 - **更新 artifact**："已将这些决策更新到 design.md"
 - **只是提供清晰度**：用户得到了需要的，继续前进
 - **稍后继续**："随时可以继续"
@@ -596,9 +605,9 @@ export interface SkillTemplate {
 
 /** 所有 skill 模板 */
 export const SKILL_TEMPLATES: Record<string, SkillTemplate> = {
-  apply: { dirName: 'marchen-apply', content: SKILL_APPLY },
-  archive: { dirName: 'marchen-archive', content: SKILL_ARCHIVE },
-  explore: { dirName: 'marchen-explore', content: SKILL_EXPLORE },
-  lite: { dirName: 'marchen-lite', content: SKILL_LITE },
-  propose: { dirName: 'marchen-propose', content: SKILL_PROPOSE },
+  'apply': { dirName: 'marchen-apply', content: SKILL_APPLY },
+  'archive': { dirName: 'marchen-archive', content: SKILL_ARCHIVE },
+  'explore': { dirName: 'marchen-explore', content: SKILL_EXPLORE },
+  'lite': { dirName: 'marchen-lite', content: SKILL_LITE },
+  'propose': { dirName: 'marchen-propose', content: SKILL_PROPOSE },
 }
