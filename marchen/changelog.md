@@ -22,3 +22,4 @@
 - 2026-04-19: [replace-propose-lite-with-lite-workflow](./archive/2026-04-19-replace-propose-lite-with-lite-workflow/) — lite 工作流改为一键式：创建 tasks → 自动实现 → 询问归档，减少手动衔接
 - 2026-04-21: [migrate-openspec-archive](./archive/2026-04-21-migrate-openspec-archive/) — 将 openspec/changes/archive 下 21 个归档变更迁移到 marchen/archive，转换元数据格式并生成带摘要的 changelog
 - 2026-04-21: [add-version-short-flag](./archive/2026-04-21-add-version-short-flag/) — 支持 marchen -v 查看版本号
+- 2026-04-21: [multi-agent-provider](./archive/2026-04-21-multi-agent-provider/) — init 支持多 AI 工具选择（Claude Code + Codex），引入 AgentProvider 注册表架构
