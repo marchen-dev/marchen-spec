@@ -616,9 +616,9 @@ export interface CommandTemplate {
 
 /** 所有 command 模板 */
 export const COMMAND_TEMPLATES: Record<string, CommandTemplate> = {
-  apply: { fileName: 'apply.md', content: COMMAND_APPLY },
-  archive: { fileName: 'archive.md', content: COMMAND_ARCHIVE },
-  explore: { fileName: 'explore.md', content: COMMAND_EXPLORE },
-  lite: { fileName: 'lite.md', content: COMMAND_LITE },
-  propose: { fileName: 'propose.md', content: COMMAND_PROPOSE },
+  'apply': { fileName: 'apply.md', content: COMMAND_APPLY },
+  'archive': { fileName: 'archive.md', content: COMMAND_ARCHIVE },
+  'explore': { fileName: 'explore.md', content: COMMAND_EXPLORE },
+  'lite': { fileName: 'lite.md', content: COMMAND_LITE },
+  'propose': { fileName: 'propose.md', content: COMMAND_PROPOSE },
 }
