@@ -118,9 +118,7 @@ export class Workspace {
     const configPath = join(this.specDir, 'config.yaml')
     const configData: Record<string, unknown> = {
       schema: 'full',
-      context: '',
       providers: [...providerIds],
-      perArtifactRules: {},
     }
     if (options?.version) {
       configData.version = options.version

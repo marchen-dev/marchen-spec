@@ -116,7 +116,7 @@ describe('fs 文件系统操作', () => {
   describe('readYaml / writeYaml YAML 读写', () => {
     it('应该正确写入并读取 YAML 文件', async () => {
       const file = join(testDir, 'config.yaml')
-      const data = { schema: 'full', context: '', perArtifactRules: {} }
+      const data = { schema: 'full', providers: ['claude-code'] }
       await writeYaml(file, data)
       const result = await readYaml<typeof data>(file)
       expect(result).toEqual(data)
