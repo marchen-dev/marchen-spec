@@ -9,10 +9,11 @@ CLI 应用层，负责命令行界面、用户交互和参数解析。使用 `co
 ```
 @marchen-spec/core
     ↑
-@marchen-spec/cli ──→ @marchen-spec/shared（错误类型）
+marchen-spec CLI ──→ @marchen-spec/shared（错误类型）
+                 ──→ @marchen-spec/config（AgentProvider 注册表）
 ```
 
-依赖 `core`（业务逻辑）和 `shared`（错误类型），是依赖图的最上层。
+依赖 `core`（业务逻辑）、`shared`（错误类型）和 `config`（provider 列表），是依赖图的最上层。
 
 ## 源码结构
 
@@ -37,7 +38,7 @@ src/
 
 ### init 命令
 ```bash
-marchen init          # 交互式确认
+marchen init          # 交互式选择 AI 工具，初始化目录结构
 marchen init --force  # 跳过确认
 ```
 
@@ -84,16 +85,14 @@ marchen update        # 更新 skill/command 文件到最新版本
 
 ```typescript
 import type { Command } from 'commander'
-import { ChangeManager, Workspace } from '@marchen-spec/core'
-import { MarchenSpecError } from '@marchen-spec/shared'
+import { createContext } from '../utils/context.js'
 
 export function registerExampleCommand(program: Command): void {
   program
     .command('example')
     .description('示例命令')
     .action(async () => {
-      const workspace = new Workspace()
-      const changes = new ChangeManager(workspace)
+      const { workspace, changes } = createContext()
       // 通过实例调用业务逻辑
     })
 }
@@ -118,4 +117,4 @@ pnpm typecheck  # 类型检查
 
 1. **薄 CLI 层**: 只负责用户交互，业务逻辑通过 core 包的 Class 实例调用
 2. **错误处理**: 捕获 `MarchenSpecError`，转换为用户友好的消息
-3. **Class 实例**: 每个命令内部创建 `Workspace` + `ChangeManager` 实例
+3. **createContext()**: 使用 `utils/context.ts` 统一创建 `Workspace` + `ChangeManager` 实例

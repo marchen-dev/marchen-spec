@@ -2,7 +2,7 @@
 
 ## 包职责
 
-配置层包，负责配置定义、默认值管理、Schema 定义和 Artifact 模板。
+配置层包，负责配置定义、默认值管理、Schema 定义、Artifact 模板和 AgentProvider 注册表。
 
 ## 依赖关系
 
@@ -21,6 +21,7 @@ src/
 ├── index.ts         # 配置接口、默认值、统一导出
 ├── schema.ts        # Schema 定义（full + lite），含 template/instruction
 ├── templates.ts     # Artifact 模板常量（proposal, design, tasks）
+├── providers.ts     # AgentProvider 注册表（10 个 AI 工具）
 ├── skills.ts        # Skill 模板导出（codegen 生成）
 ├── commands.ts      # Command 模板导出（codegen 生成）
 └── generated/       # codegen 自动生成，勿手动修改
@@ -53,13 +54,16 @@ scripts/
 - `getSchema(name)` - 按名称查找 schema，不存在时抛 ValidationError
 - `APPLY_INSTRUCTION` - apply 阶段的 LLM 指导文本
 - `PROPOSAL_TEMPLATE` / `DESIGN_TEMPLATE` / `TASKS_TEMPLATE` - 各 artifact 的 Markdown 模板
+- `AGENT_PROVIDERS` - AI 工具注册表（10 个：Antigravity, Claude Code, Codex, Copilot, Cursor, Gemini CLI, Kilo Code, Kiro, OpenCode, Windsurf）
+- `DEFAULT_PROVIDER_IDS` - 默认 provider 列表 `['claude-code']`
 - `SKILL_TEMPLATES` - Skill 模板映射（propose, lite, apply, explore, archive）
 - `COMMAND_TEMPLATES` - Command 模板映射（propose, lite, apply, explore, archive）
 
 ## 开发命令
 
 ```bash
-pnpm build      # 构建
+pnpm build      # 构建（自动执行 codegen）
+pnpm generate   # 手动执行模板 codegen
 pnpm dev        # 开发模式
 pnpm typecheck  # 类型检查
 ```

@@ -29,6 +29,7 @@ src/
 - `FileSystemError` - 文件系统操作错误（附带 `path` 和 `cause?`）
 
 **类型** (`types.ts`):
+- `AgentProvider` - AI 工具集成信息 `{ id, name, skillDir, commandDir? }`
 - `PackageBoundary` - 包边界接口 `{ name, dependsOn }`
 - `ChangeMetadata` - 变更元数据 `{ name, schema, createdAt, status }`
 - `ChangeStatus` - 变更状态 `'open' | 'archived'`
@@ -42,9 +43,10 @@ src/
 - `ContextInfo` - 上下文 artifact 信息 `{ id, status, path, content? }`
 - `ApplyState` - apply 阶段状态 `'ready' | 'blocked' | 'all_done'`
 - `ApplyProgress` - apply 阶段进度 `{ total, completed, remaining }`
-- `InstructionsResult` - 指令结果 `{ changeName, artifactId, outputPath?, template?, instruction, context, unlocks?, state?, progress? }`
+- `InstructionsResult` - 指令结果 `{ changeName, artifactId, schemaName, changeDir, outputPath?, template?, instruction, context, unlocks?, state?, progress? }`
 - `ArchiveResult` - 归档结果 `{ name, schema, archivedTo, archivedAt }`
 - `ArchiveOptions` - 归档选项 `{ summary? }`
+- `UpdateResult` - 更新结果 `{ previousVersion, currentVersion, providersUpdated, skillCount, commandCount }`
 
 ## 开发命令
 
