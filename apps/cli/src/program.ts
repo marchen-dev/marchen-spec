@@ -21,7 +21,7 @@ export function buildCliProgram(): Command {
   program
     .name('marchen')
     .description('Spec-driven development CLI')
-    .version(version)
+    .version(version, '-v, --version')
 
   registerArchiveCommand(program)
   registerInitCommand(program)
