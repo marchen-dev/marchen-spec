@@ -26,23 +26,11 @@ npm install -g marchen-spec
 marchen init
 ```
 
-`marchen init` 会让你选择要集成的 AI 编码工具，然后为选中的工具生成对应的 skill 文件。
-
-## 支持的 AI 工具
-
-Claude Code · Codex · Cursor · Windsurf · GitHub Copilot · Gemini CLI · Kiro · OpenCode · Kilo Code · Antigravity
-
-`marchen init` 时可多选，所有工具共享同一份 SKILL.md 内容。
-
-## 使用方式
-
-MarchenSpec 通过 [Agent Skills](https://github.com/anthropics/agent-skills) 与 AI 编码工具集成。初始化后，你可以在支持的工具中直接使用：
+`marchen init` 会让你选择要集成的 AI 编码工具，然后为选中的工具生成对应的 skill 文件。初始化后，你可以在支持的工具中直接使用：
 
 ```bash
 # 先探索想法，理清思路
 marchen:explore 我想给项目加暗色模式
-
-# 想清楚后，选择合适的模式：
 
 # 轻量模式 — 一步到位：创建变更 → 实现 → 归档
 marchen:lite
@@ -53,7 +41,20 @@ marchen:apply            # 逐个实现任务
 marchen:archive          # 完成后归档
 ```
 
-> 不同工具的触发方式略有不同：Claude Code 用 `/marchen:propose`，Cursor 用 `/marchen-propose`，其他工具类似。具体请参考各工具的 skill 调用文档。
+## 支持的 AI 工具
+
+* Claude Code
+* Codex
+* Cursor
+* Windsurf
+* GitHub Copilot
+* Gemini CLI
+* Kiro
+* OpenCode
+* Kilo Code
+* Antigravity
+
+`marchen init` 时可多选，所有工具共享同一份 SKILL.md 内容。
 
 ## 两种 Schema
 

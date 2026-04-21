@@ -26,23 +26,11 @@ npm install -g marchen-spec
 marchen init
 ```
 
-`marchen init` lets you choose which AI coding tools to integrate, then generates the corresponding skill files.
-
-## Supported AI Tools
-
-Claude Code · Codex · Cursor · Windsurf · GitHub Copilot · Gemini CLI · Kiro · OpenCode · Kilo Code · Antigravity
-
-You can select multiple tools during `marchen init`. All tools share the same SKILL.md content.
-
-## Usage
-
-MarchenSpec integrates with AI coding tools via [Agent Skills](https://github.com/anthropics/agent-skills). After initialization, use the skills directly in your tool:
+`marchen init` lets you choose which AI coding tools to integrate, then generates the corresponding skill files. After initialization, use the skills directly in your tool:
 
 ```bash
 # Explore ideas, clarify your thinking
 marchen:explore I want to add dark mode
-
-# When ready, pick the right mode:
 
 # Lightweight — all-in-one: create → implement → archive
 marchen:lite
@@ -53,7 +41,20 @@ marchen:apply            # Implement tasks one by one
 marchen:archive          # Archive when done
 ```
 
-> Trigger syntax varies by tool: Claude Code uses `/marchen:propose`, Cursor uses `/marchen-propose`, etc. Refer to your tool's skill invocation docs.
+## Supported AI Tools
+
+* Claude Code
+* Codex
+* Cursor
+* Windsurf
+* GitHub Copilot
+* Gemini CLI
+* Kiro
+* OpenCode
+* Kilo Code
+* Antigravity
+
+You can select multiple tools during `marchen init`. All tools share the same SKILL.md content.
 
 ## Two Schemas
 
