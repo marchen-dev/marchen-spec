@@ -53,8 +53,10 @@ export function registerInitCommand(program: Command): void {
         process.exit(0)
       }
 
+      const version = program.version() as string
+
       // 执行初始化
-      await workspace.initialize({ providers: selectedProviders })
+      await workspace.initialize({ providers: selectedProviders, version })
 
       const names = (selectedProviders as string[])
         .map((id) => AGENT_PROVIDERS[id]?.name ?? id)

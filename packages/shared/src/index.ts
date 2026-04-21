@@ -27,5 +27,6 @@ export type {
   SchemaDefinition,
   StatusResult,
   TaskItem,
+  UpdateResult,
   WorkflowStatus,
 } from './types.js'

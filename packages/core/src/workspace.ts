@@ -1,4 +1,8 @@
-import type { AgentProvider, PackageBoundary } from '@marchen-spec/shared'
+import type {
+  AgentProvider,
+  PackageBoundary,
+  UpdateResult,
+} from '@marchen-spec/shared'
 import { join } from 'node:path'
 import {
   AGENT_PROVIDERS,
@@ -12,6 +16,7 @@ import {
   getArchiveDirectory,
   getChangeDirectory,
   getSpecDirectory,
+  readYaml,
   resolveWorkspaceRoot,
   writeFile,
   writeYaml,
@@ -21,6 +26,14 @@ import {
 export interface InitializeOptions {
   /** 要安装的 AI 工具 provider ID 列表 */
   readonly providers?: readonly string[]
+  /** CLI 版本号，传入时写入 config.yaml */
+  readonly version?: string
+}
+
+/** 更新选项 */
+export interface UpdateOptions {
+  /** 当前 CLI 版本号 */
+  readonly version: string
 }
 
 /**
@@ -103,12 +116,16 @@ export class Workspace {
 
     // 写入默认配置
     const configPath = join(this.specDir, 'config.yaml')
-    await writeYaml(configPath, {
+    const configData: Record<string, unknown> = {
       schema: 'full',
       context: '',
       providers: [...providerIds],
       perArtifactRules: {},
-    })
+    }
+    if (options?.version) {
+      configData.version = options.version
+    }
+    await writeYaml(configPath, configData)
 
     // 创建 .gitkeep 占位文件
     await writeFile(join(this.changeDir, '.gitkeep'), '')
@@ -129,7 +146,63 @@ export class Workspace {
   }
 
   /**
-   * 生成 skill 文件到指定目录
+   * 更新 skill/command 文件到最新版本
+   *
+   * 读取 config.yaml 中的 providers 列表，覆盖写入最新模板文件，
+   * 并更新 version 字段。版本一致时跳过。
+   *
+   * @param options - 更新选项，包含当前 CLI 版本号
+   * @returns 更新结果
+   */
+  async update(options: UpdateOptions): Promise<UpdateResult> {
+    const configPath = join(this.specDir, 'config.yaml')
+    const config = await readYaml<Record<string, unknown>>(configPath)
+
+    const previousVersion = (config.version as string) ?? null
+    if (previousVersion === options.version) {
+      return {
+        previousVersion,
+        currentVersion: options.version,
+        providersUpdated: [],
+        skillCount: 0,
+        commandCount: 0,
+      }
+    }
+
+    const providerIds = (config.providers as string[]) ?? []
+    const providers = providerIds
+      .map((id) => AGENT_PROVIDERS[id])
+      .filter((p): p is AgentProvider => p != null)
+
+    const providerNames: string[] = []
+    let skillCount = 0
+    let commandCount = 0
+    const skillTemplateCount = Object.keys(SKILL_TEMPLATES).length
+    const commandTemplateCount = Object.keys(COMMAND_TEMPLATES).length
+
+    for (const provider of providers) {
+      await this.generateSkills(provider.skillDir)
+      skillCount += skillTemplateCount
+      if (provider.commandDir) {
+        await this.generateCommands(provider.commandDir)
+        commandCount += commandTemplateCount
+      }
+      providerNames.push(provider.name)
+    }
+
+    config.version = options.version
+    await writeYaml(configPath, config)
+
+    return {
+      previousVersion,
+      currentVersion: options.version,
+      providersUpdated: providerNames,
+      skillCount,
+      commandCount,
+    }
+  }
+
+  /**
    *
    * @param skillDir - skill 根目录的相对路径
    */

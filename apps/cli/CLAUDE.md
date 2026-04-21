@@ -26,7 +26,8 @@ src/
 │   ├── list.ts           # list 命令
 │   ├── archive.ts        # archive 命令
 │   ├── status.ts         # status 命令
-│   └── instructions.ts   # instructions 命令
+│   ├── instructions.ts   # instructions 命令
+│   └── update.ts         # update 命令
 └── utils/
     ├── context.ts        # createContext() 工具
     └── error.ts          # handleError() 错误处理
@@ -70,6 +71,11 @@ marchen status <name> --json  # JSON 输出（给 Skill 消费）
 marchen instructions <name> <artifact-id>         # 获取 artifact 创建指令（JSON）
 marchen instructions <name> <artifact-id> --json   # 同上（默认行为）
 marchen instructions <name> apply --json           # 获取 apply 实现指令（state + progress + context）
+```
+
+### update 命令
+```bash
+marchen update        # 更新 skill/command 文件到最新版本
 ```
 
 ## 添加新命令

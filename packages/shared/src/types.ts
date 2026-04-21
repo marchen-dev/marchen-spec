@@ -229,3 +229,19 @@ export interface ArchiveOptions {
   /** 变更摘要（写入 changelog） */
   readonly summary?: string | undefined
 }
+
+/**
+ * 更新操作结果
+ */
+export interface UpdateResult {
+  /** 更新前的版本号，旧项目无 version 时为 null */
+  readonly previousVersion: string | null
+  /** 更新后的版本号 */
+  readonly currentVersion: string
+  /** 已更新的 provider 名称列表 */
+  readonly providersUpdated: readonly string[]
+  /** 更新的 skill 文件数量 */
+  readonly skillCount: number
+  /** 更新的 command 文件数量 */
+  readonly commandCount: number
+}

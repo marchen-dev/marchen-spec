@@ -6,6 +6,7 @@ import { registerInstructionsCommand } from './commands/instructions.js'
 import { registerListCommand } from './commands/list.js'
 import { registerNewCommand } from './commands/new.js'
 import { registerStatusCommand } from './commands/status.js'
+import { registerUpdateCommand } from './commands/update.js'
 
 const require = createRequire(import.meta.url)
 const { version } = require('../package.json') as { version: string }
@@ -29,6 +30,7 @@ export function buildCliProgram(): Command {
   registerListCommand(program)
   registerNewCommand(program)
   registerStatusCommand(program)
+  registerUpdateCommand(program)
 
   return program
 }

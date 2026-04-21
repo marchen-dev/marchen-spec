@@ -47,6 +47,7 @@ workspace.changelogPath  // marchen/changelog.md 路径
 
 await workspace.isInitialized()  // 检查是否已初始化
 await workspace.initialize()     // 执行初始化（创建目录 + 生成 skill/command 文件）
+await workspace.update({ version })  // 更新 skill/command 文件到指定版本
 ```
 
 ### ChangeManager 类

@@ -77,6 +77,16 @@ marchen list [--json]                     # List all open changes
 marchen status <name> [--json]            # View artifact status and workflow suggestions
 marchen instructions <name> <artifact>    # Get artifact creation instructions (JSON)
 marchen archive <name> [--summary <text>] # Archive change and write to changelog
+marchen update                            # Update skill/command files to latest version
+```
+
+## Updating
+
+After upgrading marchen-spec, run update to sync skill files:
+
+```bash
+npm install -g marchen-spec@latest
+marchen update
 ```
 
 ## Workspace Layout

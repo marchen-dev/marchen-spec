@@ -10,6 +10,7 @@ vi.mock('@marchen-spec/fs', async (importOriginal) => {
     ensureDir: vi.fn().mockResolvedValue(undefined),
     writeFile: vi.fn().mockResolvedValue(undefined),
     writeYaml: vi.fn().mockResolvedValue(undefined),
+    readYaml: vi.fn().mockResolvedValue({}),
     exists: vi.fn().mockResolvedValue(false),
   }
 })
@@ -160,6 +161,107 @@ describe('workspace', () => {
 
       const ensureDirCalls = vi.mocked(fs.ensureDir).mock.calls.map(([p]) => p)
       expect(ensureDirCalls.some((p) => p.includes('skills'))).toBe(false)
+    })
+
+    it('传入 version 时写入 config.yaml', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize({ version: '1.0.0' })
+
+      expect(fs.writeYaml).toHaveBeenCalledWith(
+        expect.stringContaining('config.yaml'),
+        expect.objectContaining({ version: '1.0.0' }),
+      )
+    })
+
+    it('不传 version 时 config.yaml 不含 version 字段', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize()
+
+      const writeYamlCalls = vi.mocked(fs.writeYaml).mock.calls
+      const configCall = writeYamlCalls.find(([p]) =>
+        (p as string).includes('config.yaml'),
+      )
+      expect(configCall).toBeDefined()
+      expect(configCall![1]).not.toHaveProperty('version')
+    })
+  })
+
+  describe('update', () => {
+    it('正常更新：覆盖 skill/command 文件并更新 version', async () => {
+      vi.mocked(fs.readYaml).mockResolvedValueOnce({
+        schema: 'full',
+        context: '',
+        providers: ['claude-code'],
+        perArtifactRules: {},
+        version: '0.5.0',
+      })
+
+      const workspace = new Workspace('/test/root')
+      const result = await workspace.update({ version: '1.0.0' })
+
+      expect(result.previousVersion).toBe('0.5.0')
+      expect(result.currentVersion).toBe('1.0.0')
+      expect(result.providersUpdated).toContain('Claude Code')
+      expect(result.skillCount).toBeGreaterThan(0)
+
+      expect(fs.writeYaml).toHaveBeenCalledWith(
+        expect.stringContaining('config.yaml'),
+        expect.objectContaining({ version: '1.0.0' }),
+      )
+    })
+
+    it('版本一致时跳过更新', async () => {
+      vi.mocked(fs.readYaml).mockResolvedValueOnce({
+        schema: 'full',
+        providers: ['claude-code'],
+        version: '1.0.0',
+      })
+
+      const workspace = new Workspace('/test/root')
+      const result = await workspace.update({ version: '1.0.0' })
+
+      expect(result.providersUpdated).toEqual([])
+      expect(result.skillCount).toBe(0)
+      expect(result.commandCount).toBe(0)
+      expect(fs.writeYaml).not.toHaveBeenCalled()
+      expect(fs.ensureDir).not.toHaveBeenCalled()
+    })
+
+    it('旧项目无 version 字段时正常更新', async () => {
+      vi.mocked(fs.readYaml).mockResolvedValueOnce({
+        schema: 'full',
+        providers: ['claude-code'],
+        perArtifactRules: {},
+      })
+
+      const workspace = new Workspace('/test/root')
+      const result = await workspace.update({ version: '1.0.0' })
+
+      expect(result.previousVersion).toBeNull()
+      expect(result.currentVersion).toBe('1.0.0')
+      expect(result.providersUpdated).toContain('Claude Code')
+    })
+
+    it('保留 config.yaml 的其他字段', async () => {
+      vi.mocked(fs.readYaml).mockResolvedValueOnce({
+        schema: 'full',
+        context: 'custom context',
+        providers: ['claude-code'],
+        perArtifactRules: { proposal: 'custom rule' },
+        version: '0.5.0',
+      })
+
+      const workspace = new Workspace('/test/root')
+      await workspace.update({ version: '1.0.0' })
+
+      expect(fs.writeYaml).toHaveBeenCalledWith(
+        expect.stringContaining('config.yaml'),
+        expect.objectContaining({
+          context: 'custom context',
+          perArtifactRules: { proposal: 'custom rule' },
+          version: '1.0.0',
+        }),
+      )
     })
   })
 })

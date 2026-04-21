@@ -77,6 +77,16 @@ marchen list [--json]                     # 列出所有 open 变更
 marchen status <name> [--json]            # 查看 artifact 状态和工作流建议
 marchen instructions <name> <artifact>    # 获取 artifact 创建指令（JSON）
 marchen archive <name> [--summary <text>] # 归档变更并写入 changelog
+marchen update                            # 更新 skill/command 文件到最新版本
+```
+
+## 更新
+
+升级 marchen-spec 后，运行 update 同步 skill 文件：
+
+```bash
+npm install -g marchen-spec@latest
+marchen update
 ```
 
 ## 工作区结构
