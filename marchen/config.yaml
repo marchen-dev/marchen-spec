@@ -1,3 +1,6 @@
 schema: full
 context: ''
+providers:
+  - claude-code
+  - codex
 perArtifactRules: {}
