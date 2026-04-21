@@ -1,4 +1,20 @@
 /**
+ * AI 工具集成信息
+ *
+ * 描述一个 AI 编码工具的 skill/command 目录约定
+ */
+export interface AgentProvider {
+  /** 唯一标识符（kebab-case） */
+  readonly id: string
+  /** 显示名称 */
+  readonly name: string
+  /** skill 目录的相对路径（相对于项目根目录） */
+  readonly skillDir: string
+  /** command 目录的相对路径，仅部分工具支持 */
+  readonly commandDir?: string | undefined
+}
+
+/**
  * 包边界信息
  *
  * 描述 workspace 中单个包的元数据和依赖关系

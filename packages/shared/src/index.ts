@@ -11,6 +11,7 @@ export {
   ValidationError,
 } from './errors.js'
 export type {
+  AgentProvider,
   ApplyProgress,
   ApplyState,
   ArchiveOptions,

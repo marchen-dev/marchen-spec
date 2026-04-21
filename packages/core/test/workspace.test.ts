@@ -51,7 +51,6 @@ describe('workspace', () => {
       const workspace = new Workspace('/test/root')
       await workspace.initialize()
 
-      // 创建目录：specDir, changes, archive, skill 目录, commands 目录
       expect(fs.ensureDir).toHaveBeenCalledWith(
         expect.stringContaining('marchen'),
       )
@@ -61,14 +60,13 @@ describe('workspace', () => {
       expect(fs.ensureDir).toHaveBeenCalledWith(
         expect.stringContaining('archive'),
       )
-      // 写入 config.yaml
       expect(fs.writeYaml).toHaveBeenCalledWith(
         expect.stringContaining('config.yaml'),
         expect.objectContaining({ schema: 'full' }),
       )
     })
 
-    it('生成 skill 文件到 .claude/skills/', async () => {
+    it('默认只生成 Claude Code 的文件', async () => {
       const workspace = new Workspace('/test/root')
       await workspace.initialize()
 
@@ -79,12 +77,6 @@ describe('workspace', () => {
         expect.stringContaining('.claude/skills/marchen-propose/SKILL.md'),
         expect.stringContaining('marchen-propose'),
       )
-    })
-
-    it('生成 command 文件到 .claude/commands/marchen/', async () => {
-      const workspace = new Workspace('/test/root')
-      await workspace.initialize()
-
       expect(fs.ensureDir).toHaveBeenCalledWith(
         expect.stringContaining('.claude/commands/marchen'),
       )
@@ -94,18 +86,80 @@ describe('workspace', () => {
       )
     })
 
-    it('重复 init 覆盖已有 skill 文件', async () => {
+    it('默认不生成 Codex 的文件', async () => {
       const workspace = new Workspace('/test/root')
       await workspace.initialize()
+
+      const ensureDirCalls = vi.mocked(fs.ensureDir).mock.calls.map(([p]) => p)
+      expect(ensureDirCalls.some((p) => p.includes('.codex'))).toBe(false)
+    })
+
+    it('config.yaml 包含 providers 字段', async () => {
+      const workspace = new Workspace('/test/root')
       await workspace.initialize()
 
-      // writeFile 被调用两轮，每轮都写入 skill 和 command 文件
-      const skillCalls = vi
-        .mocked(fs.writeFile)
-        .mock.calls.filter(
-          ([path]) => typeof path === 'string' && path.includes('SKILL.md'),
-        )
-      expect(skillCalls.length).toBe(10)
+      expect(fs.writeYaml).toHaveBeenCalledWith(
+        expect.stringContaining('config.yaml'),
+        expect.objectContaining({ providers: ['claude-code'] }),
+      )
+    })
+
+    it('指定多个 provider 时为每个生成 skill 文件', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize({ providers: ['claude-code', 'codex'] })
+
+      expect(fs.ensureDir).toHaveBeenCalledWith(
+        expect.stringContaining('.claude/skills/marchen-propose'),
+      )
+      expect(fs.ensureDir).toHaveBeenCalledWith(
+        expect.stringContaining('.codex/skills/marchen-propose'),
+      )
+    })
+
+    it('codex provider 不生成 command 文件', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize({ providers: ['codex'] })
+
+      const ensureDirCalls = vi.mocked(fs.ensureDir).mock.calls.map(([p]) => p)
+      expect(ensureDirCalls.some((p) => p.includes('commands'))).toBe(false)
+    })
+
+    it('skill.md 内容跨 provider 一致', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize({ providers: ['claude-code', 'codex'] })
+
+      const writeFileCalls = vi.mocked(fs.writeFile).mock.calls
+      const claudeSkill = writeFileCalls.find(
+        ([p]) =>
+          typeof p === 'string' &&
+          p.includes('.claude/skills/marchen-apply/SKILL.md'),
+      )
+      const codexSkill = writeFileCalls.find(
+        ([p]) =>
+          typeof p === 'string' &&
+          p.includes('.codex/skills/marchen-apply/SKILL.md'),
+      )
+      expect(claudeSkill).toBeDefined()
+      expect(codexSkill).toBeDefined()
+      expect(claudeSkill![1]).toBe(codexSkill![1])
+    })
+
+    it('config.yaml 持久化多个 provider', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize({ providers: ['claude-code', 'codex'] })
+
+      expect(fs.writeYaml).toHaveBeenCalledWith(
+        expect.stringContaining('config.yaml'),
+        expect.objectContaining({ providers: ['claude-code', 'codex'] }),
+      )
+    })
+
+    it('忽略无效的 provider id', async () => {
+      const workspace = new Workspace('/test/root')
+      await workspace.initialize({ providers: ['invalid-provider'] })
+
+      const ensureDirCalls = vi.mocked(fs.ensureDir).mock.calls.map(([p]) => p)
+      expect(ensureDirCalls.some((p) => p.includes('skills'))).toBe(false)
     })
   })
 })

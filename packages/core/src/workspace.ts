@@ -1,6 +1,11 @@
-import type { PackageBoundary } from '@marchen-spec/shared'
+import type { AgentProvider, PackageBoundary } from '@marchen-spec/shared'
 import { join } from 'node:path'
-import { COMMAND_TEMPLATES, SKILL_TEMPLATES } from '@marchen-spec/config'
+import {
+  AGENT_PROVIDERS,
+  COMMAND_TEMPLATES,
+  DEFAULT_PROVIDER_IDS,
+  SKILL_TEMPLATES,
+} from '@marchen-spec/config'
 import {
   ensureDir,
   exists,
@@ -11,6 +16,12 @@ import {
   writeFile,
   writeYaml,
 } from '@marchen-spec/fs'
+
+/** 初始化选项 */
+export interface InitializeOptions {
+  /** 要安装的 AI 工具 provider ID 列表 */
+  readonly providers?: readonly string[]
+}
 
 /**
  * 工作区上下文
@@ -76,8 +87,15 @@ export class Workspace {
    * - marchenspec/config.yaml
    * - marchenspec/changes/
    * - marchenspec/archive/
+   *
+   * @param options - 初始化选项
    */
-  async initialize(): Promise<void> {
+  async initialize(options?: InitializeOptions): Promise<void> {
+    const providerIds = options?.providers ?? DEFAULT_PROVIDER_IDS
+    const providers = providerIds
+      .map((id) => AGENT_PROVIDERS[id])
+      .filter((p): p is AgentProvider => p != null)
+
     // 创建目录结构
     await ensureDir(this.specDir)
     await ensureDir(this.changeDir)
@@ -88,6 +106,7 @@ export class Workspace {
     await writeYaml(configPath, {
       schema: 'full',
       context: '',
+      providers: [...providerIds],
       perArtifactRules: {},
     })
 
@@ -100,30 +119,38 @@ export class Workspace {
       await writeFile(this.changelogPath, '# 变更日志\n')
     }
 
-    // 生成 skill 和 command 文件到 .claude/ 目录
-    await this.generateSkills()
-    await this.generateCommands()
-  }
-
-  /**
-   * 生成 skill 文件到 .claude/skills/ 目录
-   */
-  private async generateSkills(): Promise<void> {
-    for (const template of Object.values(SKILL_TEMPLATES)) {
-      const skillDir = join(this.root, '.claude', 'skills', template.dirName)
-      await ensureDir(skillDir)
-      await writeFile(join(skillDir, 'SKILL.md'), template.content)
+    // 为每个 provider 生成 skill 和 command 文件
+    for (const provider of providers) {
+      await this.generateSkills(provider.skillDir)
+      if (provider.commandDir) {
+        await this.generateCommands(provider.commandDir)
+      }
     }
   }
 
   /**
-   * 生成 command 文件到 .claude/commands/marchen/ 目录
+   * 生成 skill 文件到指定目录
+   *
+   * @param skillDir - skill 根目录的相对路径
    */
-  private async generateCommands(): Promise<void> {
-    const commandsDir = join(this.root, '.claude', 'commands', 'marchen')
-    await ensureDir(commandsDir)
+  private async generateSkills(skillDir: string): Promise<void> {
+    for (const template of Object.values(SKILL_TEMPLATES)) {
+      const dir = join(this.root, skillDir, template.dirName)
+      await ensureDir(dir)
+      await writeFile(join(dir, 'SKILL.md'), template.content)
+    }
+  }
+
+  /**
+   * 生成 command 文件到指定目录
+   *
+   * @param commandDir - command 目录的相对路径
+   */
+  private async generateCommands(commandDir: string): Promise<void> {
+    const dir = join(this.root, commandDir)
+    await ensureDir(dir)
     for (const template of Object.values(COMMAND_TEMPLATES)) {
-      await writeFile(join(commandsDir, template.fileName), template.content)
+      await writeFile(join(dir, template.fileName), template.content)
     }
   }
 }

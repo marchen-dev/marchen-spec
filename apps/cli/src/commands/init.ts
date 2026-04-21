@@ -1,5 +1,6 @@
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
+import { AGENT_PROVIDERS } from '@marchen-spec/config'
 import { createContext } from '../utils/context.js'
 
 /**
@@ -32,10 +33,33 @@ export function registerInitCommand(program: Command): void {
         }
       }
 
-      // 执行初始化
-      await workspace.initialize()
+      // 选择 AI 工具
+      const providerOptions = Object.values(AGENT_PROVIDERS).map(
+        (provider) => ({
+          value: provider.id,
+          label: provider.name,
+        }),
+      )
 
-      p.log.success('已生成 .claude/skills/ 和 .claude/commands/ 文件')
+      const selectedProviders = await p.multiselect({
+        message: '选择要安装的 AI 工具集成',
+        options: providerOptions,
+        initialValues: ['claude-code'],
+        required: true,
+      })
+
+      if (p.isCancel(selectedProviders)) {
+        p.cancel('操作已取消')
+        process.exit(0)
+      }
+
+      // 执行初始化
+      await workspace.initialize({ providers: selectedProviders })
+
+      const names = (selectedProviders as string[])
+        .map((id) => AGENT_PROVIDERS[id]?.name ?? id)
+        .join(', ')
+      p.log.success(`已为 ${names} 生成 skills 文件`)
       p.outro('MarchenSpec 初始化成功！')
     })
 }

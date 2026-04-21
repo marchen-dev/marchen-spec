@@ -2,6 +2,7 @@ import { SPEC_DIRECTORY_NAME } from '@marchen-spec/shared'
 
 export { COMMAND_TEMPLATES } from './commands.js'
 export type { CommandTemplate } from './commands.js'
+export { AGENT_PROVIDERS, DEFAULT_PROVIDER_IDS } from './providers.js'
 export {
   APPLY_INSTRUCTION,
   DEFAULT_SCHEMA_NAME,
