@@ -1,0 +1,23 @@
+# 变更日志
+- 2025-07-14: [implement-marchen-propose-skill](./archive/2025-07-14-implement-marchen-propose-skill/) — 实现 propose skill 和 codegen 模板机制，init 时自动生成 .claude/skills 和 commands 文件
+- 2026-03-22: [bootstrap-monorepo-foundation](./archive/2026-03-22-bootstrap-monorepo-foundation/) — 搭建 pnpm + Turborepo monorepo，配置 tsdown 构建、vitest 测试、ESLint + Prettier 工具链
+- 2026-03-29: [add-knowledge-base](./archive/2026-03-29-add-knowledge-base/) — 新增结构化知识库目录，持久化项目全局认知、技术决策和后续方向
+- 2026-03-29: [implement-fs-and-init-command](./archive/2026-03-29-implement-fs-and-init-command/) — 实现 fs 包的文件 I/O 操作和 marchen init 命令，创建规范目录结构
+- 2026-03-29: [implement-new-command](./archive/2026-03-29-implement-new-command/) — 实现 marchen new 命令，创建变更目录并根据 schema 生成初始 artifact 文件
+- 2026-03-30: [implement-list-command](./archive/2026-03-30-implement-list-command/) — 实现 marchen list 命令，扫描变更目录读取元数据并按时间排序展示
+- 2026-03-30: [refactor-to-class-architecture](./archive/2026-03-30-refactor-to-class-architecture/) — 重构为 Class 架构，引入 Workspace 和 ChangeManager 类收归领域操作
+- 2026-03-31: [refactor-knowledge-to-docs](./archive/2026-03-31-refactor-knowledge-to-docs/) — 重构 knowledge 为 docs 结构，以 archive 作为唯一历史记录来源
+- 2026-04-03: [refactor-error-handling](./archive/2026-04-03-refactor-error-handling/) — 引入分层错误体系：ValidationError、StateError、FileSystemError 三级分类
+- 2026-04-03: [setup-cli-release](./archive/2026-04-03-setup-cli-release/) — 建立 @marchen-spec/cli 的 npm 发布流程，配置 bumpp 版本管理和 bundle 策略
+- 2026-04-03: [simplify-specs-architecture](./archive/2026-04-03-simplify-specs-architecture/) — 移除 OpenSpec 双层规范系统（main + delta），简化为 archive 单一真相源
+- 2026-04-05: [implement-status-and-instructions](./archive/2026-04-05-implement-status-and-instructions/) — 实现 status 和 instructions 命令，为 AI skill 层提供 JSON API 驱动工作流
+- 2026-04-05: [implement-verify-command](./archive/2026-04-05-implement-verify-command/) — 实现 verify 命令，检查变更 artifact 完整度和 task checkbox 完成进度
+- 2026-04-07: [add-apply-command](./archive/2026-04-07-add-apply-command/) — instructions 支持 apply artifactId，一次返回实现阶段所需的全部上下文和进度
+- 2026-04-09: [enhance-status-output](./archive/2026-04-09-enhance-status-output/) — status 命令增加 ANSI 彩色输出、状态图标和总进度汇总显示
+- 2026-04-10: [add-explore-skill](./archive/2026-04-10-add-explore-skill/) — 新增 explore skill，提供动手前的结构化思考伙伴模式，支持代码库调查
+- 2026-04-12: [add-archive-skill](./archive/2026-04-12-add-archive-skill/) — 新增 archive skill/command 模板，CLI archive 命令增加 --json 输出支持
+- 2026-04-12: [add-rapid-schema-and-rename](./archive/2026-04-12-add-rapid-schema-and-rename/) — 新增 rapid schema 支持轻量变更流程，规范目录从 marchenspec 重命名为 marchen
+- 2026-04-12: [rename-schemas-and-add-propose-lite](./archive/2026-04-12-rename-schemas-and-add-propose-lite/) — schema 重命名为 full/lite 统一语义维度，新增 propose-lite skill 入口
+- 2026-04-19: [add-changelog](./archive/2026-04-19-add-changelog/) — archive 时自动追加 changelog.md 摘要索引，便于 explore 快速定位历史决策
+- 2026-04-19: [replace-propose-lite-with-lite-workflow](./archive/2026-04-19-replace-propose-lite-with-lite-workflow/) — lite 工作流改为一键式：创建 tasks → 自动实现 → 询问归档，减少手动衔接
+- 2026-04-21: [migrate-openspec-archive](./archive/2026-04-21-migrate-openspec-archive/) — 将 openspec/changes/archive 下 21 个归档变更迁移到 marchen/archive，转换元数据格式并生成带摘要的 changelog

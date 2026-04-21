@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /Users/suemor/code/project/MarchenSpec && pnpm lint:fix && pnpm format"
+            "command": "pnpm lint:fix && pnpm format"
           }
         ]
       }
