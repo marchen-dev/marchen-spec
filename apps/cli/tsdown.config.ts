@@ -4,6 +4,7 @@ export default defineConfig({
   entry: ['./src/index.ts'],
   deps: {
     alwaysBundle: [/^@marchen-spec\//],
+    neverBundle: ['@tobilu/qmd', 'node-llama-cpp'],
   },
   platform: 'node',
   format: ['esm'],

@@ -58,6 +58,9 @@ export class Workspace {
   /** 变更日志路径（marchenspec/changelog.md） */
   readonly changelogPath: string
 
+  /** 搜索索引数据库路径（marchenspec/.search/index.sqlite） */
+  readonly searchDbPath: string
+
   /** 包边界信息 */
   readonly packageBoundaries: readonly PackageBoundary[] = [
     { name: '@marchen-spec/shared', dependsOn: [] },
@@ -82,6 +85,7 @@ export class Workspace {
     this.changeDir = getChangeDirectory(this.root)
     this.archiveDir = getArchiveDirectory(this.root)
     this.changelogPath = join(this.specDir, 'changelog.md')
+    this.searchDbPath = join(this.specDir, '.search', 'index.sqlite')
   }
 
   /**
@@ -113,6 +117,7 @@ export class Workspace {
     await ensureDir(this.specDir)
     await ensureDir(this.changeDir)
     await ensureDir(this.archiveDir)
+    await ensureDir(join(this.specDir, '.search'))
 
     // 写入默认配置
     const configPath = join(this.specDir, 'config.yaml')

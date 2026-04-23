@@ -26,6 +26,7 @@
   "dependencies": {
     "@marchen-spec/config": "workspace:*",
     "@marchen-spec/fs": "workspace:*",
-    "@marchen-spec/shared": "workspace:*"
+    "@marchen-spec/shared": "workspace:*",
+    "@tobilu/qmd": "^2.1.0"
   }
 }

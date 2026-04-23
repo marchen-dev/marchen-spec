@@ -5,6 +5,7 @@ import { registerInitCommand } from './commands/init.js'
 import { registerInstructionsCommand } from './commands/instructions.js'
 import { registerListCommand } from './commands/list.js'
 import { registerNewCommand } from './commands/new.js'
+import { registerSearchCommand } from './commands/search.js'
 import { registerStatusCommand } from './commands/status.js'
 import { registerUpdateCommand } from './commands/update.js'
 
@@ -29,6 +30,7 @@ export function buildCliProgram(): Command {
   registerInstructionsCommand(program)
   registerListCommand(program)
   registerNewCommand(program)
+  registerSearchCommand(program)
   registerStatusCommand(program)
   registerUpdateCommand(program)
 
