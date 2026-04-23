@@ -56,16 +56,17 @@ tags: [workflow, explore, thinking]
 **可视化**
 ```
 ┌─────────────────────────────────────────┐
-│       大量使用 ASCII 图表               │
+│     Use ASCII diagrams liberally        │
 ├─────────────────────────────────────────┤
 │                                         │
 │   ┌────────┐         ┌────────┐        │
-│   │ 状态   │────────▶│ 状态   │        │
+│   │ State  │────────▶│ State  │        │
 │   │   A    │         │   B    │        │
 │   └────────┘         └────────┘        │
 │                                         │
-│   系统图、状态机、数据流、               │
-│   架构草图、依赖关系图、对比表           │
+│   System diagrams, state machines,      │
+│   data flows, architecture sketches,    │
+│   dependency graphs, comparison tables  │
 │                                         │
 └─────────────────────────────────────────┘
 ```
