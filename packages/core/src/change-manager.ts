@@ -164,6 +164,9 @@ export class ChangeManager {
     // 写入 changelog
     await this.appendChangelog(name, datePrefix, options?.summary)
 
+    // 更新搜索索引
+    await this.updateSearchIndex()
+
     return {
       name,
       schema: metadata.schema,
@@ -201,6 +204,20 @@ export class ChangeManager {
       : `- ${datePrefix}: ${link}`
 
     await appendFile(changelogPath, `${entry}\n`)
+  }
+
+  /** 更新搜索索引（失败时静默） */
+  private async updateSearchIndex(): Promise<void> {
+    try {
+      const { SearchManager } = await import('./search-manager.js')
+      const search = new SearchManager(this.workspace)
+      if (await search.isAvailable()) {
+        await search.indexChange()
+        await search.close()
+      }
+    } catch {
+      // 索引失败不影响归档
+    }
   }
 
   /**

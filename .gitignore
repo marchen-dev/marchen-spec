@@ -7,3 +7,4 @@ coverage
 repomix-output.xml
 .worktrees
 .claude/worktrees
+.search/
