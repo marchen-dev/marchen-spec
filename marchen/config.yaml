@@ -3,4 +3,4 @@ context: ''
 providers:
   - claude-code
 perArtifactRules: {}
-version: 0.6.1
+version: 0.6.2
