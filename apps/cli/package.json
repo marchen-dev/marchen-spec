@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.10.1",
+    "@tobilu/qmd": "^2.1.0",
     "commander": "^14.0.0",
     "js-yaml": "^4.1.0",
     "picocolors": "^1.1.1"
