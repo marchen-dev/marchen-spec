@@ -1,4 +1,6 @@
 import type { Workspace } from './workspace.js'
+import { mkdir } from 'node:fs/promises'
+import { dirname } from 'node:path'
 
 /** 搜索结果项 */
 export interface SearchResult {
@@ -43,6 +45,7 @@ export class SearchManager {
   private async getStore(): Promise<any> {
     if (this.store) return this.store
     const { createStore } = await import('@tobilu/qmd')
+    await mkdir(dirname(this.workspace.searchDbPath), { recursive: true })
     this.store = await createStore({
       dbPath: this.workspace.searchDbPath,
       config: {

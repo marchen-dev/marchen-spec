@@ -38,6 +38,6 @@
 ## 7. 验证
 
 - [x] 7.1 `pnpm build` 构建通过，确认 external 配置正确
-- [ ] 7.2 手动测试：`marchen search "异常处理" --json` 返回相关结果
-- [ ] 7.3 手动测试：`marchen archive` 后索引自动更新
-- [ ] 7.4 手动测试：qmd 不可用时 `marchen search` 优雅降级，其他命令正常
+- [x] 7.2 手动测试：`marchen search "异常处理" --json` 返回相关结果
+- [x] 7.3 手动测试：`marchen archive` 后索引自动更新
+- [x] 7.4 手动测试：qmd 不可用时 `marchen search` 优雅降级，其他命令正常
