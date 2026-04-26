@@ -91,7 +91,13 @@ tags: [workflow, explore, thinking]
 marchen list --json
 ```
 
-2. 变更历史：
+2. 相关历史（如果用户提到了具体话题）：
+```bash
+marchen search "<从用户输入提取的关键词>" --json
+```
+如果有匹配结果（score >= 0.4），读取对应 archive 目录下的 design.md 或 proposal.md 了解详细决策。
+
+3. 变更历史概览：
 ```bash
 cat marchen/changelog.md
 ```
@@ -103,6 +109,8 @@ cat marchen/changelog.md
 - 它们的名称、schema 和状态
 - 项目过去做过哪些变更
 - 用户可能在做什么
+
+如果 `marchen search` 不可用（命令报错），回退到 changelog.md 浏览方式。
 
 如果用户提到了特定变更名称，读取它的 artifact 作为上下文。
 

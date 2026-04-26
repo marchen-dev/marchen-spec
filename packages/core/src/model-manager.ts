@@ -70,6 +70,18 @@ export interface EnsureModelsOptions {
  */
 export class ModelManager {
   /**
+   * 检查本地是否已有 QMD 模型文件。
+   *
+   * 通过检查模型目录下是否存在 .gguf 文件判断。
+   */
+  async hasLocalModels(): Promise<boolean> {
+    if (!(await exists(DEFAULT_MODEL_DIR))) return false
+    const { readdir } = await import('node:fs/promises')
+    const files = await readdir(DEFAULT_MODEL_DIR)
+    return files.filter((f) => f.endsWith('.gguf')).length >= 3
+  }
+
+  /**
    * 确保 QMD 所需模型已下载并通过校验。
    *
    * 按 embed → generate → rerank 顺序串行处理。

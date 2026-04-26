@@ -2,7 +2,7 @@
 
 ## 包职责
 
-文件系统层包，封装所有文件和目录操作。按职责拆分为 4 个模块。
+文件系统层包，封装所有文件和目录操作。按职责拆分为 5 个模块。
 
 ## 依赖关系
 
@@ -19,6 +19,7 @@
 ```
 src/
 ├── index.ts       # 统一 re-export
+├── binary.ts      # 二进制文件操作（下载、SHA-256、文件大小）
 ├── paths.ts       # 路径解析
 ├── directory.ts   # 目录操作
 ├── file.ts        # 文件读写
@@ -26,6 +27,13 @@ src/
 ```
 
 ## 核心导出
+
+**二进制文件操作** (`binary.ts`):
+- `downloadFile(url, outputPath, options?)` - stream 下载远程文件（支持进度回调）
+- `sha256File(path)` - stream 计算文件 SHA-256
+- `getFileSize(path)` - 获取文件大小（字节）
+- `removeFile(path)` - 删除文件（不存在时静默）
+- `renameFile(src, dest)` - 移动文件（自动创建父目录）
 
 **路径解析** (`paths.ts`):
 - `resolveWorkspaceRoot(fromPath?)` - 解析 workspace 根目录
