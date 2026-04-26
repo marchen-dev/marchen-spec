@@ -28,7 +28,8 @@ src/
 │   ├── archive.ts        # archive 命令
 │   ├── status.ts         # status 命令
 │   ├── instructions.ts   # instructions 命令
-│   └── update.ts         # update 命令
+│   ├── update.ts         # update 命令
+│   └── search.ts         # search 命令
 └── utils/
     ├── context.ts        # createContext() 工具
     └── error.ts          # handleError() 错误处理
@@ -77,6 +78,15 @@ marchen instructions <name> apply --json           # 获取 apply 实现指令�
 ### update 命令
 ```bash
 marchen update        # 更新 skill/command 文件到最新版本
+```
+
+### search 命令
+```bash
+marchen search <query>                # 语义搜索归档变更历史
+marchen search <query> -n 10          # 指定结果数量
+marchen search <query> --min-score 0.5  # 最低分数阈值
+marchen search <query> --rebuild      # 重建索引后搜索
+marchen search <query> --json         # JSON 输出
 ```
 
 ## 添加新命令

@@ -1,6 +1,4 @@
 schema: full
-context: ''
 providers:
   - claude-code
-perArtifactRules: {}
 version: 0.6.2

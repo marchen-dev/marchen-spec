@@ -1,4 +1,8 @@
-import type { HybridQueryResult, QMDStore } from '@tobilu/qmd'
+import type {
+  HybridQueryResult,
+  SearchResult as QmdSearchResult,
+  QMDStore,
+} from '@tobilu/qmd'
 import type { ModelDownloadProgress } from './model-manager.js'
 import type { Workspace } from './workspace.js'
 import { mkdir } from 'node:fs/promises'
@@ -29,12 +33,13 @@ export interface PrepareOptions {
  * 搜索管理器
  *
  * 封装 qmd SDK，提供语义搜索和索引管理接口。
- * 通过 dynamic import 加载 qmd，加载失败时优雅降级。
+ * 模型存在时使用完整语义搜索，不存在时自动降级为 BM25 关键词搜索。
  */
 export class SearchManager {
   private store: QMDStore | null = null
   private available: boolean | null = null
   private prepared = false
+  private modelsReady = false
 
   constructor(private readonly workspace: Workspace) {}
 
@@ -51,38 +56,82 @@ export class SearchManager {
   }
 
   /**
-   * 准备搜索引擎（模型 + store 初始化）。
+   * 准备搜索引擎。
    *
-   * 是唯一接受进度回调的方法。幂等，重复调用立即返回。
-   * 如果未显式调用，search/index 会自动触发（无进度回调）。
+   * 有 onModelProgress 回调时正常下载模型；无回调且模型不存在时跳过模型，降级为 FTS。
+   * 幂等，重复调用立即返回。
    */
   async prepare(options?: PrepareOptions): Promise<void> {
     if (this.prepared) return
 
     const { ModelManager } = await import('./model-manager.js')
     const modelManager = new ModelManager()
-    const paths = await modelManager.ensureModels(
-      options?.onModelProgress
-        ? { onProgress: options.onModelProgress }
-        : undefined,
-    )
-    modelManager.applyEnv(paths)
+
+    if (options?.onModelProgress) {
+      const paths = await modelManager.ensureModels({
+        onProgress: options.onModelProgress,
+      })
+      modelManager.applyEnv(paths)
+      this.modelsReady = true
+    } else if (await modelManager.hasLocalModels()) {
+      const paths = await modelManager.ensureModels()
+      modelManager.applyEnv(paths)
+      this.modelsReady = true
+    }
 
     await this.initStore()
     this.prepared = true
   }
 
-  /** 语义搜索归档内容 */
+  /** 语义搜索归档内容，无模型时自动降级为 BM25 */
   async search(
     query: string,
     options?: SearchOptions,
   ): Promise<SearchResult[]> {
     const store = await this.getStore()
-    const results = await store.search({
-      query,
-      limit: options?.limit ?? 5,
-      minScore: options?.minScore ?? 0.3,
-    })
+    const limit = options?.limit ?? 5
+    const minScore = options?.minScore ?? 0.3
+
+    if (this.modelsReady) {
+      return this.hybridSearch(store, query, limit, minScore)
+    }
+    return this.ftsSearch(store, query, limit)
+  }
+
+  /** 全量索引（扫描 + embedding），无模型时跳过 embed */
+  async index(): Promise<void> {
+    const store = await this.getStore()
+    await store.update({ collections: ['archive'] })
+    if (this.modelsReady) {
+      await store.embed()
+    }
+  }
+
+  /** 增量索引（archive 后调用），无模型时跳过 embed */
+  async indexChange(): Promise<void> {
+    const store = await this.getStore()
+    await store.update({ collections: ['archive'] })
+    if (this.modelsReady) {
+      await store.embed()
+    }
+  }
+
+  /** 释放资源 */
+  async close(): Promise<void> {
+    await this.store?.close()
+    this.store = null
+    this.prepared = false
+    this.modelsReady = false
+  }
+
+  /** 完整语义搜索（BM25 + vector + reranking） */
+  private async hybridSearch(
+    store: QMDStore,
+    query: string,
+    limit: number,
+    minScore: number,
+  ): Promise<SearchResult[]> {
+    const results = await store.search({ query, limit, minScore })
     return results.map((r: HybridQueryResult) => {
       const result: SearchResult = {
         path: r.displayPath,
@@ -97,25 +146,26 @@ export class SearchManager {
     })
   }
 
-  /** 全量索引（扫描 + embedding） */
-  async index(): Promise<void> {
-    const store = await this.getStore()
-    await store.update({ collections: ['archive'] })
-    await store.embed()
-  }
-
-  /** 增量索引（archive 后调用） */
-  async indexChange(): Promise<void> {
-    const store = await this.getStore()
-    await store.update({ collections: ['archive'] })
-    await store.embed()
-  }
-
-  /** 释放资源 */
-  async close(): Promise<void> {
-    await this.store?.close()
-    this.store = null
-    this.prepared = false
+  /** BM25 关键词搜索（降级模式） */
+  private async ftsSearch(
+    store: QMDStore,
+    query: string,
+    limit: number,
+  ): Promise<SearchResult[]> {
+    const results = await store.searchLex(query, { limit })
+    return results.map((r: QmdSearchResult) => {
+      const snippet = r.body?.slice(0, 200) ?? ''
+      const result: SearchResult = {
+        path: r.displayPath,
+        title: r.title,
+        score: r.score,
+        snippet,
+      }
+      if (r.context) {
+        return { ...result, context: r.context }
+      }
+      return result
+    })
   }
 
   /** 确保 store 就绪，未 prepare 时自动触发 */
