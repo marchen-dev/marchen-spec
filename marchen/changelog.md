@@ -30,3 +30,4 @@
 - 2026-04-21: [add-review-skill](./archive/2026-04-21-add-review-skill/) — 新增 review skill，apply 完成后可对照变更意图检查代码实现
 - 2026-04-21: [remove-unused-config-fields](./archive/2026-04-21-remove-unused-config-fields/) — 移除 config.yaml 初始化时未使用的 context 和 perArtifactRules 字段
 - 2026-04-24: [integrate-qmd-search](./archive/2026-04-24-integrate-qmd-search/) — 集成 qmd 语义搜索，新增 SearchManager 和 marchen search 命令，archive 时自动索引
+- 2026-04-26: [add-qmd-model-source](./archive/2026-04-26-add-qmd-model-source/) — 支持从自定义CDN下载qmd模型，新增ModelManager管理模型生命周期，SearchManager分离prepare阶段并展示下载进度
