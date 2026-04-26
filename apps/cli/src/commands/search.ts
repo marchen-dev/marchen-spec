@@ -1,8 +1,43 @@
+import type { ModelDownloadProgress } from '@marchen-spec/core'
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
 import { SearchManager, Workspace } from '@marchen-spec/core'
 import pc from 'picocolors'
 import { handleError } from '../utils/error.js'
+
+/** 模型类型显示名称 */
+const MODEL_LABELS: Record<string, string> = {
+  embed: 'Embedding',
+  generate: 'Query Expansion',
+  rerank: 'Reranker',
+}
+
+/** 格式化模型下载进度 */
+function formatModelProgress(progress: ModelDownloadProgress): string {
+  const name = MODEL_LABELS[progress.model] ?? progress.model
+
+  switch (progress.stage) {
+    case 'checking':
+      return `检查模型 ${name}...`
+    case 'downloading': {
+      if (progress.downloadedBytes && progress.totalBytes) {
+        const pct = Math.round(
+          (progress.downloadedBytes / progress.totalBytes) * 100,
+        )
+        const mb = (progress.downloadedBytes / 1024 / 1024).toFixed(1)
+        const total = (progress.totalBytes / 1024 / 1024).toFixed(0)
+        return `下载模型 ${name}... ${mb}/${total} MB (${pct}%)`
+      }
+      return `下载模型 ${name}...`
+    }
+    case 'verifying':
+      return `校验模型 ${name}...`
+    case 'ready':
+      return `模型 ${name} 就绪`
+    default:
+      return `准备模型 ${name}...`
+  }
+}
 
 /**
  * 注册 search 命令
@@ -29,25 +64,38 @@ export function registerSearchCommand(program: Command): void {
           rebuild?: boolean
         },
       ) => {
-        try {
-          const workspace = new Workspace()
-          const search = new SearchManager(workspace)
+        const workspace = new Workspace()
+        const search = new SearchManager(workspace)
+        const spinner = options.json ? null : p.spinner()
 
+        try {
           if (!(await search.isAvailable())) {
             p.log.error('搜索功能不可用（qmd 加载失败）')
             process.exit(1)
           }
 
+          spinner?.start('准备搜索引擎...')
+          await search.prepare({
+            onModelProgress: (prog) => {
+              spinner?.message(formatModelProgress(prog))
+            },
+          })
+          spinner?.stop('搜索引擎就绪')
+
           if (options.rebuild) {
-            if (!options.json) p.log.info('正在重建索引...')
+            spinner?.start('正在重建索引...')
             await search.index()
-            if (!options.json) p.log.success('索引重建完成')
+            spinner?.stop('索引重建完成')
           }
+
+          spinner?.start('搜索中...')
 
           const results = await search.search(query, {
             limit: Number(options.limit),
             minScore: Number(options.minScore),
           })
+
+          spinner?.stop('搜索完成')
 
           if (options.json) {
             console.log(JSON.stringify(results, null, 2))
@@ -77,6 +125,7 @@ export function registerSearchCommand(program: Command): void {
 
           await search.close()
         } catch (error) {
+          spinner?.stop('搜索失败')
           handleError(error)
         }
       },

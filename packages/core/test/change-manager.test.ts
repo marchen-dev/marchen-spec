@@ -20,6 +20,11 @@ vi.mock('@marchen-spec/fs', async (importOriginal) => {
   }
 })
 
+// Mock qmd，避免 archive 时 updateSearchIndex 发起网络请求
+vi.mock('@tobilu/qmd', () => {
+  throw new Error('qmd not available in test')
+})
+
 describe('changeManager.isValidName 名称校验', () => {
   it('合法的 kebab-case 名称', () => {
     expect(ChangeManager.isValidName('add-dark-mode')).toBe(true)

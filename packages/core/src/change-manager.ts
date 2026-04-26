@@ -206,17 +206,24 @@ export class ChangeManager {
     await appendFile(changelogPath, `${entry}\n`)
   }
 
-  /** 更新搜索索引（失败时静默） */
+  /** 更新搜索索引（失败时静默，超时 30 秒） */
   private async updateSearchIndex(): Promise<void> {
     try {
-      const { SearchManager } = await import('./search-manager.js')
-      const search = new SearchManager(this.workspace)
-      if (await search.isAvailable()) {
-        await search.indexChange()
-        await search.close()
-      }
+      await Promise.race([
+        this.doUpdateSearchIndex(),
+        new Promise<void>((resolve) => setTimeout(resolve, 30_000)),
+      ])
     } catch {
       // 索引失败不影响归档
+    }
+  }
+
+  private async doUpdateSearchIndex(): Promise<void> {
+    const { SearchManager } = await import('./search-manager.js')
+    const search = new SearchManager(this.workspace)
+    if (await search.isAvailable()) {
+      await search.indexChange()
+      await search.close()
     }
   }
 
