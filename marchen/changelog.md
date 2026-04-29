@@ -35,3 +35,4 @@
 - 2026-04-29: [fix-search-model-download](./archive/2026-04-29-fix-search-model-download/) — search命令增加downloadIfMissing选项，无本地模型时不触发下载，自动降级BM25搜索
 - 2026-04-29: [fix-init-search-check](./archive/2026-04-29-fix-init-search-check/) — init命令增加qmd可用性检测，缺少SQLite时跳过模型下载询问并提示安装依赖
 - 2026-04-29: [auto-index-on-empty-search](./archive/2026-04-29-auto-index-on-empty-search/) — search首次查询时自动检测空索引并触发archive目录扫描，无需手动--rebuild
+- 2026-04-29: [update-readme-sqlite](./archive/2026-04-29-update-readme-sqlite/) — 移除 README 中误导性的系统 SQLite 安装说明

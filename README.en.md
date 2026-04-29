@@ -94,19 +94,6 @@ marchen search "auth" --rebuild           # Rebuild index before searching
 
 Required models (~2GB) are downloaded automatically on first use. If models are not installed, it falls back to BM25 keyword search.
 
-Semantic search requires SQLite:
-
-```bash
-# macOS
-brew install sqlite
-
-# Debian/Ubuntu
-sudo apt install sqlite3 libsqlite3-dev
-
-# RHEL/Fedora
-sudo dnf install sqlite sqlite-devel
-```
-
 The explore and apply skills also leverage search to automatically retrieve relevant history as context during workflows.
 
 ## Updating

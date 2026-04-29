@@ -94,19 +94,6 @@ marchen search "认证" --rebuild        # 重建索引后搜索
 
 首次使用时会自动下载所需模型（约 2GB）。如果模型未安装，自动降级为 BM25 关键词搜索。
 
-语义搜索依赖 SQLite：
-
-```bash
-# macOS
-brew install sqlite
-
-# Debian/Ubuntu
-sudo apt install sqlite3 libsqlite3-dev
-
-# RHEL/Fedora
-sudo dnf install sqlite sqlite-devel
-```
-
 explore 和 apply skill 也会利用搜索能力，在工作流中自动检索相关历史作为上下文。
 
 ## 更新
