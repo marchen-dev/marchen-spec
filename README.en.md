@@ -81,18 +81,18 @@ marchen update                            # Update skill/command files to latest
 marchen search <query> [--rebuild]        # Search archived change history
 ```
 
-## Semantic Search
+## Search
 
-MarchenSpec includes local-model-based semantic search for retrieving relevant design decisions and change records from your archive history.
+MarchenSpec includes Hybrid Search (BM25 + vector retrieval + reranking) for retrieving relevant design decisions and change records from your archive history.
 
 ```bash
-marchen search "user auth"                # Semantic search across archives
+marchen search "user auth"                # Search across archives
 marchen search "refactor" -n 10           # Specify result count
 marchen search "auth" --min-score 0.5     # Set minimum score threshold
 marchen search "auth" --rebuild           # Rebuild index before searching
 ```
 
-Required models (~2GB) are downloaded automatically on first use. If models are not installed, it falls back to BM25 keyword search.
+Required models (~2GB) are downloaded automatically on first use. If models are not installed, it falls back to BM25 full-text search.
 
 The explore and apply skills also leverage search to automatically retrieve relevant history as context during workflows.
 

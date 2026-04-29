@@ -4,9 +4,10 @@ import type {
   QMDStore,
 } from '@tobilu/qmd'
 import type { ModelDownloadProgress } from './model-manager.js'
-import type { Workspace } from './workspace.js'
+import type { SearchMode, Workspace } from './workspace.js'
 import { mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { StateError } from '@marchen-spec/shared'
 
 /** 搜索结果项 */
 export interface SearchResult {
@@ -29,13 +30,15 @@ export interface PrepareOptions {
   readonly onModelProgress?: (progress: ModelDownloadProgress) => void
   /** 本地无模型时是否触发下载，默认 false（降级为 BM25） */
   readonly downloadIfMissing?: boolean
+  /** 搜索模式，从 config.yaml 读取后传入 */
+  readonly mode?: SearchMode
 }
 
 /**
  * 搜索管理器
  *
- * 封装 qmd SDK，提供语义搜索和索引管理接口。
- * 模型存在时使用完整语义搜索，不存在时自动降级为 BM25 关键词搜索。
+ * 封装 qmd SDK，提供 Hybrid Search 和索引管理接口。
+ * 模型存在时使用 Hybrid Search（BM25 + Vector + Reranking），不存在时降级为 BM25。
  */
 export class SearchManager {
   private store: QMDStore | null = null
@@ -60,32 +63,59 @@ export class SearchManager {
   /**
    * 准备搜索引擎。
    *
-   * 有 onModelProgress 回调时正常下载模型；无回调且模型不存在时跳过模型，降级为 FTS。
+   * 根据 mode 决定搜索策略：
+   * - bm25：跳过模型，直接使用 BM25 全文检索
+   * - semantic：加载模型，使用 Hybrid Search，模型不存在时抛出错误
+   * - auto/undefined：检测本地模型，有则 Hybrid Search，无则 BM25
+   *
    * 幂等，重复调用立即返回。
    */
   async prepare(options?: PrepareOptions): Promise<void> {
     if (this.prepared) return
 
+    const mode = options?.mode
+
+    if (mode === 'bm25') {
+      await this.initStore()
+      this.prepared = true
+      return
+    }
+
     const { ModelManager } = await import('./model-manager.js')
     const modelManager = new ModelManager()
 
-    const shouldLoad =
-      options?.downloadIfMissing || (await modelManager.hasLocalModels())
-
-    if (shouldLoad) {
+    if (mode === 'semantic') {
       const ensureOpts = options?.onModelProgress
         ? { onProgress: options.onModelProgress }
         : undefined
-      const paths = await modelManager.ensureModels(ensureOpts)
-      modelManager.applyEnv(paths)
-      this.modelsReady = true
+      try {
+        const paths = await modelManager.ensureModels(ensureOpts)
+        modelManager.applyEnv(paths)
+        this.modelsReady = true
+      } catch {
+        throw new StateError(
+          '搜索模型未安装',
+          '请运行 marchen update 下载模型，或将 config.yaml 中 search.mode 改为 auto 或 bm25',
+        )
+      }
+    } else {
+      const shouldLoad =
+        options?.downloadIfMissing || (await modelManager.hasLocalModels())
+      if (shouldLoad) {
+        const ensureOpts = options?.onModelProgress
+          ? { onProgress: options.onModelProgress }
+          : undefined
+        const paths = await modelManager.ensureModels(ensureOpts)
+        modelManager.applyEnv(paths)
+        this.modelsReady = true
+      }
     }
 
     await this.initStore()
     this.prepared = true
   }
 
-  /** 语义搜索归档内容，无模型时自动降级为 BM25 */
+  /** 搜索归档内容，无模型时降级为 BM25 */
   async search(
     query: string,
     options?: SearchOptions,
@@ -138,7 +168,7 @@ export class SearchManager {
     }
   }
 
-  /** 完整语义搜索（BM25 + vector + reranking） */
+  /** Hybrid Search（BM25 + Vector + Reranking） */
   private async hybridSearch(
     store: QMDStore,
     query: string,
@@ -160,7 +190,7 @@ export class SearchManager {
     })
   }
 
-  /** BM25 关键词搜索（降级模式） */
+  /** BM25 全文检索（降级模式） */
   private async ftsSearch(
     store: QMDStore,
     query: string,

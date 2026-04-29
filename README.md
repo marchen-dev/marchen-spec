@@ -81,18 +81,18 @@ marchen update                            # 更新 skill/command 文件到最新
 marchen search <query> [--rebuild]        # 搜索归档变更历史
 ```
 
-## 语义搜索
+## 搜索
 
-MarchenSpec 内置基于本地模型的语义搜索，可以从归档历史中检索相关的设计决策和变更记录。
+MarchenSpec 内置 Hybrid Search（BM25 + 向量检索 + 重排序），可以从归档历史中检索相关的设计决策和变更记录。
 
 ```bash
-marchen search "用户认证"              # 语义搜索归档历史
+marchen search "用户认证"              # 搜索归档历史
 marchen search "重构" -n 10            # 指定结果数量
 marchen search "认证" --min-score 0.5  # 设置最低分数阈值
 marchen search "认证" --rebuild        # 重建索引后搜索
 ```
 
-首次使用时会自动下载所需模型（约 2GB）。如果模型未安装，自动降级为 BM25 关键词搜索。
+首次使用时会自动下载所需模型（约 2GB）。如果模型未安装，自动降级为 BM25 全文检索。
 
 explore 和 apply skill 也会利用搜索能力，在工作流中自动检索相关历史作为上下文。
 

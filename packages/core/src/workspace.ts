@@ -22,12 +22,17 @@ import {
   writeYaml,
 } from '@marchen-spec/fs'
 
+/** 搜索模式 */
+export type SearchMode = 'auto' | 'bm25' | 'semantic'
+
 /** 初始化选项 */
 export interface InitializeOptions {
   /** 要安装的 AI 工具 provider ID 列表 */
   readonly providers?: readonly string[]
   /** CLI 版本号，传入时写入 config.yaml */
   readonly version?: string
+  /** 搜索模式，写入 config.yaml 的 search.mode */
+  readonly searchMode?: SearchMode
 }
 
 /** 更新选项 */
@@ -128,6 +133,7 @@ export class Workspace {
     if (options?.version) {
       configData.version = options.version
     }
+    configData.search = { mode: options?.searchMode ?? 'auto' }
     await writeYaml(configPath, configData)
 
     // 创建 .gitkeep 占位文件
@@ -146,6 +152,16 @@ export class Workspace {
         await this.generateCommands(provider.commandDir)
       }
     }
+  }
+
+  /**
+   * 读取 config.yaml 配置
+   *
+   * @returns config.yaml 的完整内容
+   */
+  async readConfig(): Promise<Record<string, unknown>> {
+    const configPath = join(this.specDir, 'config.yaml')
+    return await readYaml<Record<string, unknown>>(configPath)
   }
 
   /**
@@ -194,6 +210,9 @@ export class Workspace {
     }
 
     config.version = options.version
+    if (!config.search) {
+      config.search = { mode: 'auto' }
+    }
     await writeYaml(configPath, config)
 
     return {

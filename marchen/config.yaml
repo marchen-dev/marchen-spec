@@ -2,3 +2,5 @@ schema: full
 providers:
   - claude-code
 version: 0.7.1
+search:
+  mode: auto

@@ -1,43 +1,10 @@
-import type { ModelDownloadProgress } from '@marchen-spec/core'
+import type { SearchMode } from '@marchen-spec/core'
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
 import { AGENT_PROVIDERS } from '@marchen-spec/config'
-import { ModelManager, SearchManager } from '@marchen-spec/core'
+import { ModelManager } from '@marchen-spec/core'
 import { createContext } from '../utils/context.js'
-
-/** 模型类型显示名称 */
-const MODEL_LABELS: Record<string, string> = {
-  embed: 'Embedding',
-  generate: 'Query Expansion',
-  rerank: 'Reranker',
-}
-
-/** 格式化模型下载进度 */
-function formatModelProgress(progress: ModelDownloadProgress): string {
-  const name = MODEL_LABELS[progress.model] ?? progress.model
-
-  switch (progress.stage) {
-    case 'checking':
-      return `检查模型 ${name}...`
-    case 'downloading': {
-      if (progress.downloadedBytes && progress.totalBytes) {
-        const pct = Math.round(
-          (progress.downloadedBytes / progress.totalBytes) * 100,
-        )
-        const mb = (progress.downloadedBytes / 1024 / 1024).toFixed(1)
-        const total = (progress.totalBytes / 1024 / 1024).toFixed(0)
-        return `下载模型 ${name}... ${mb}/${total} MB (${pct}%)`
-      }
-      return `下载模型 ${name}...`
-    }
-    case 'verifying':
-      return `校验模型 ${name}...`
-    case 'ready':
-      return `模型 ${name} 就绪`
-    default:
-      return `准备模型 ${name}...`
-  }
-}
+import { formatModelProgress } from '../utils/model-progress.js'
 
 /**
  * 注册 init 命令
@@ -91,48 +58,61 @@ export function registerInitCommand(program: Command): void {
 
       const version = program.version() as string
 
+      // 选择搜索模式
+      const searchMode = await p.select<SearchMode>({
+        message: '选择搜索模式',
+        options: [
+          {
+            value: 'auto' as SearchMode,
+            label: 'Auto',
+            hint: '检测本地模型，有则 Hybrid，无则 BM25',
+          },
+          {
+            value: 'semantic' as SearchMode,
+            label: 'Hybrid Search',
+            hint: 'BM25 + 向量检索 + 重排序（需下载约 2GB 模型）',
+          },
+          {
+            value: 'bm25' as SearchMode,
+            label: 'BM25',
+            hint: '全文关键词检索，无需模型',
+          },
+        ],
+        initialValue: 'auto' as SearchMode,
+      })
+
+      if (p.isCancel(searchMode)) {
+        p.cancel('操作已取消')
+        process.exit(0)
+      }
+
       // 执行初始化
-      await workspace.initialize({ providers: selectedProviders, version })
+      await workspace.initialize({
+        providers: selectedProviders,
+        version,
+        searchMode,
+      })
 
       const names = (selectedProviders as string[])
         .map((id) => AGENT_PROVIDERS[id]?.name ?? id)
         .join(', ')
       p.log.success(`已为 ${names} 生成 skills 文件`)
 
-      // 检测搜索环境
-      const search = new SearchManager(workspace)
-      const qmdAvailable = await search.isAvailable()
-
-      if (!qmdAvailable) {
-        p.log.warn('语义搜索不可用（缺少 SQLite 依赖），使用基础关键词搜索')
-        p.log.info('安装 SQLite 后可通过 marchen search 启用语义搜索')
-      } else {
+      // 按搜索模式处理模型
+      if (searchMode === 'semantic') {
         const modelManager = new ModelManager()
-        const hasModels = await modelManager.hasLocalModels()
-
-        if (hasModels) {
-          p.log.info('语义搜索已就绪')
-        } else {
-          const downloadModels = await p.confirm({
-            message: '是否启用语义搜索？（需要下载约 2GB 模型）',
-            initialValue: false,
-          })
-
-          if (!p.isCancel(downloadModels) && downloadModels) {
-            const spinner = p.spinner()
-            spinner.start('下载搜索模型...')
-            await modelManager.ensureModels({
-              onProgress: (prog) => {
-                spinner.message(formatModelProgress(prog))
-              },
-            })
-            spinner.stop('语义搜索已启用')
-          } else {
-            p.log.info(
-              '使用基础关键词搜索，后续可通过 marchen search --rebuild 启用语义搜索',
-            )
-          }
-        }
+        const spinner = p.spinner()
+        spinner.start('下载搜索模型...')
+        await modelManager.ensureModels({
+          onProgress: (prog) => {
+            spinner.message(formatModelProgress(prog))
+          },
+        })
+        spinner.stop('Hybrid Search 已启用')
+      } else if (searchMode === 'auto') {
+        p.log.info('搜索模式: Auto（有模型时使用 Hybrid Search）')
+      } else {
+        p.log.info('搜索模式: BM25 全文检索')
       }
 
       p.outro('MarchenSpec 初始化成功！')
