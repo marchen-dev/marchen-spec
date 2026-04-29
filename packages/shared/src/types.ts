@@ -245,3 +245,28 @@ export interface UpdateResult {
   /** 更新的 command 文件数量 */
   readonly commandCount: number
 }
+
+// ============================================================
+// 工作区配置（config.yaml）
+// ============================================================
+
+/** 搜索模式 */
+export type SearchMode = 'auto' | 'bm25' | 'semantic'
+
+/**
+ * 工作区配置
+ *
+ * 对应 config.yaml 的结构
+ */
+export interface WorkspaceConfig {
+  /** 默认 schema */
+  readonly schema: string
+  /** 已安装的 AI 工具 provider ID 列表 */
+  readonly providers: readonly string[]
+  /** CLI 版本号 */
+  readonly version?: string
+  /** 搜索配置 */
+  readonly search?: {
+    readonly mode: SearchMode
+  }
+}

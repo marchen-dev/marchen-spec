@@ -48,8 +48,7 @@ export function registerUpdateCommand(program: Command): void {
 
         // 按 search.mode 同步模型状态
         const config = await workspace.readConfig()
-        const searchMode =
-          (config.search as Record<string, unknown>)?.mode ?? 'auto'
+        const searchMode = config.search?.mode ?? 'auto'
 
         if (searchMode === 'semantic') {
           const modelManager = new ModelManager()

@@ -1,10 +1,11 @@
+import type { SearchMode } from '@marchen-spec/shared'
 import type {
   HybridQueryResult,
   SearchResult as QmdSearchResult,
   QMDStore,
 } from '@tobilu/qmd'
 import type { ModelDownloadProgress } from './model-manager.js'
-import type { SearchMode, Workspace } from './workspace.js'
+import type { Workspace } from './workspace.js'
 import { mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { StateError } from '@marchen-spec/shared'

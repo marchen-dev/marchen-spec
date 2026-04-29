@@ -1,6 +1,7 @@
 export {
   ARCHIVE_DIRECTORY_NAME,
   CHANGE_DIRECTORY_NAME,
+  CONFIG_FILE_NAME,
   METADATA_FILE_NAME,
   SPEC_DIRECTORY_NAME,
 } from './constants.js'
@@ -25,8 +26,10 @@ export type {
   InstructionsResult,
   PackageBoundary,
   SchemaDefinition,
+  SearchMode,
   StatusResult,
   TaskItem,
   UpdateResult,
   WorkflowStatus,
+  WorkspaceConfig,
 } from './types.js'

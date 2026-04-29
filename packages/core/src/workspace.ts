@@ -1,7 +1,9 @@
 import type {
   AgentProvider,
   PackageBoundary,
+  SearchMode,
   UpdateResult,
+  WorkspaceConfig,
 } from '@marchen-spec/shared'
 import { join } from 'node:path'
 import {
@@ -21,9 +23,7 @@ import {
   writeFile,
   writeYaml,
 } from '@marchen-spec/fs'
-
-/** 搜索模式 */
-export type SearchMode = 'auto' | 'bm25' | 'semantic'
+import { CONFIG_FILE_NAME } from '@marchen-spec/shared'
 
 /** 初始化选项 */
 export interface InitializeOptions {
@@ -125,7 +125,7 @@ export class Workspace {
     await ensureDir(join(this.specDir, '.search'))
 
     // 写入默认配置
-    const configPath = join(this.specDir, 'config.yaml')
+    const configPath = join(this.specDir, CONFIG_FILE_NAME)
     const configData: Record<string, unknown> = {
       schema: 'full',
       providers: [...providerIds],
@@ -159,9 +159,9 @@ export class Workspace {
    *
    * @returns config.yaml 的完整内容
    */
-  async readConfig(): Promise<Record<string, unknown>> {
-    const configPath = join(this.specDir, 'config.yaml')
-    return await readYaml<Record<string, unknown>>(configPath)
+  async readConfig(): Promise<WorkspaceConfig> {
+    const configPath = join(this.specDir, CONFIG_FILE_NAME)
+    return await readYaml<WorkspaceConfig>(configPath)
   }
 
   /**
@@ -174,7 +174,7 @@ export class Workspace {
    * @returns 更新结果
    */
   async update(options: UpdateOptions): Promise<UpdateResult> {
-    const configPath = join(this.specDir, 'config.yaml')
+    const configPath = join(this.specDir, CONFIG_FILE_NAME)
     const config = await readYaml<Record<string, unknown>>(configPath)
 
     const previousVersion = (config.version as string) ?? null

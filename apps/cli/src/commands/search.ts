@@ -45,8 +45,7 @@ export function registerSearchCommand(program: Command): void {
           let searchMode: SearchMode | undefined
           try {
             const config = await workspace.readConfig()
-            searchMode = (config.search as Record<string, unknown>)
-              ?.mode as SearchMode
+            searchMode = config.search?.mode
           } catch {
             // config.yaml 不存在时使用默认行为
           }
