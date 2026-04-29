@@ -104,9 +104,7 @@ export function registerInitCommand(program: Command): void {
       const qmdAvailable = await search.isAvailable()
 
       if (!qmdAvailable) {
-        p.log.warn(
-          '语义搜索不可用（缺少 SQLite 依赖），使用基础关键词搜索',
-        )
+        p.log.warn('语义搜索不可用（缺少 SQLite 依赖），使用基础关键词搜索')
         p.log.info('安装 SQLite 后可通过 marchen search 启用语义搜索')
       } else {
         const modelManager = new ModelManager()

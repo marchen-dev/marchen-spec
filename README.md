@@ -2,7 +2,7 @@
 
 # MarchenSpec
 
-规范驱动开发 CLI — 让 AI 按结构化流程先想清楚再动手写代码。
+面向 AI 编码代理的规范驱动工作流 CLI。
 
 [![npm version](https://img.shields.io/npm/v/marchen-spec)](https://www.npmjs.com/package/marchen-spec)
 

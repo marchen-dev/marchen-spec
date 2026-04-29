@@ -33,3 +33,4 @@
 - 2026-04-26: [add-qmd-model-source](./archive/2026-04-26-add-qmd-model-source/) — 支持从自定义CDN下载qmd模型，新增ModelManager管理模型生命周期，SearchManager分离prepare阶段并展示下载进度
 - 2026-04-26: [integrate-search-skills](./archive/2026-04-26-integrate-search-skills/) — 搜索自动降级BM25关键词模式，init增加模型下载选项，explore和apply模板集成语义搜索
 - 2026-04-29: [fix-search-model-download](./archive/2026-04-29-fix-search-model-download/) — search命令增加downloadIfMissing选项，无本地模型时不触发下载，自动降级BM25搜索
+- 2026-04-29: [fix-init-search-check](./archive/2026-04-29-fix-init-search-check/) — init命令增加qmd可用性检测，缺少SQLite时跳过模型下载询问并提示安装依赖

@@ -2,7 +2,7 @@
   "name": "marchenspec",
   "version": "0.6.2",
   "private": true,
-  "description": "Spec-driven development CLI",
+  "description": "Spec-driven workflow CLI for AI coding agents",
   "type": "module",
   "packageManager": "pnpm@10.17.1",
   "engines": {
