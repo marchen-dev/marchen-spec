@@ -91,6 +91,7 @@ export class SearchManager {
     options?: SearchOptions,
   ): Promise<SearchResult[]> {
     const store = await this.getStore()
+    await this.ensureIndexed(store)
     const limit = options?.limit ?? 5
     const minScore = options?.minScore ?? 0.3
 
@@ -124,6 +125,17 @@ export class SearchManager {
     this.store = null
     this.prepared = false
     this.modelsReady = false
+  }
+
+  /** 索引为空时自动触发首次扫描 */
+  private async ensureIndexed(store: QMDStore): Promise<void> {
+    const status = await store.getStatus()
+    if (status.totalDocuments === 0) {
+      await store.update({ collections: ['archive'] })
+      if (this.modelsReady) {
+        await store.embed()
+      }
+    }
   }
 
   /** 完整语义搜索（BM25 + vector + reranking） */
