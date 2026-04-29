@@ -39,3 +39,4 @@
 - 2026-04-29: [search-config-and-command-refactor](./archive/2026-04-29-search-config-and-command-refactor/) — config.yaml 持久化搜索模式，重构 init/update/search 命令联动，提取共享模型进度 utils
 - 2026-04-29: [refine-search-terminology](./archive/2026-04-29-refine-search-terminology/) — 统一搜索术语为 Hybrid Search 和 BM25，覆盖 CLI 文案、JSDoc 和 README
 - 2026-04-29: [type-safe-config](./archive/2026-04-29-type-safe-config/) — config.yaml 读取类型安全化：新增 WorkspaceConfig 接口和 CONFIG_FILE_NAME 常量，SearchMode 下沉到 shared
+- 2026-04-29: [improve-explore-search-guidance](./archive/2026-04-29-improve-explore-search-guidance/) — 优化 explore skill 的历史检索策略：changelog 优先、搜索补充，加入 RAG 查询构造指引

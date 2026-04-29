@@ -248,26 +248,37 @@ tags: [workflow, explore, thinking]
 marchen list --json
 \`\`\`
 
-2. 相关历史（如果用户提到了具体话题）：
-\`\`\`bash
-marchen search "<从用户输入提取的关键词>" --json
-\`\`\`
-如果有匹配结果（score >= 0.4），读取对应 archive 目录下的 design.md 或 proposal.md 了解详细决策。
-
-3. 变更历史概览：
+2. 变更历史概览：
 \`\`\`bash
 cat marchen/changelog.md
 \`\`\`
+这是所有已归档变更的索引，每条包含日期、变更名和一句话摘要。先扫一遍找到与用户话题相关的条目。如果找到，直接读对应 archive 目录下的 proposal.md 或 design.md 了解详情。
 
-这是项目所有已归档变更的索引。如果某条与当前讨论相关，读取对应 archive 目录下的 proposal.md 或 design.md 了解详情。
+3. 语义搜索：
+
+这是 RAG 搜索，不是 grep——构造语义完整的短语，不要用单个泛词。
+
+\`\`\`bash
+marchen search "<语义完整的查询短语>" --json
+\`\`\`
+
+**查询构造指引：**
+- 用描述性短语，不用单个词：
+  "初始化适配多个 agent 客户端" → \`"multi-agent provider 初始化"\`
+  "之前怎么处理错误的" → \`"错误处理 error handling 重构"\`
+  "暗色模式的设计决策" → \`"dark mode 设计方案"\`
+- 中英文混合效果更好（归档内容里中英都有）
+- 如果结果不理想，换个角度重新构造查询
+
+如果有匹配结果（score >= 0.4），读取对应 archive 目录下的 design.md 或 proposal.md 了解详细决策。
+
+如果 \`marchen search\` 不可用（命令报错），回退到 changelog.md + 手动读 archive 目录。
 
 这告诉你：
 - 是否有进行中的变更
 - 它们的名称、schema 和状态
 - 项目过去做过哪些变更
 - 用户可能在做什么
-
-如果 \`marchen search\` 不可用（命令报错），回退到 changelog.md 浏览方式。
 
 如果用户提到了特定变更名称，读取它的 artifact 作为上下文。
 
