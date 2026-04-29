@@ -32,3 +32,4 @@
 - 2026-04-24: [integrate-qmd-search](./archive/2026-04-24-integrate-qmd-search/) — 集成 qmd 语义搜索，新增 SearchManager 和 marchen search 命令，archive 时自动索引
 - 2026-04-26: [add-qmd-model-source](./archive/2026-04-26-add-qmd-model-source/) — 支持从自定义CDN下载qmd模型，新增ModelManager管理模型生命周期，SearchManager分离prepare阶段并展示下载进度
 - 2026-04-26: [integrate-search-skills](./archive/2026-04-26-integrate-search-skills/) — 搜索自动降级BM25关键词模式，init增加模型下载选项，explore和apply模板集成语义搜索
+- 2026-04-29: [fix-search-model-download](./archive/2026-04-29-fix-search-model-download/) — search命令增加downloadIfMissing选项，无本地模型时不触发下载，自动降级BM25搜索

@@ -78,7 +78,36 @@ marchen status <name> [--json]            # View artifact status and workflow su
 marchen instructions <name> <artifact>    # Get artifact creation instructions (JSON)
 marchen archive <name> [--summary <text>] # Archive change and write to changelog
 marchen update                            # Update skill/command files to latest version
+marchen search <query> [--rebuild]        # Search archived change history
 ```
+
+## Semantic Search
+
+MarchenSpec includes local-model-based semantic search for retrieving relevant design decisions and change records from your archive history.
+
+```bash
+marchen search "user auth"                # Semantic search across archives
+marchen search "refactor" -n 10           # Specify result count
+marchen search "auth" --min-score 0.5     # Set minimum score threshold
+marchen search "auth" --rebuild           # Rebuild index before searching
+```
+
+Required models (~2GB) are downloaded automatically on first use. If models are not installed, it falls back to BM25 keyword search.
+
+Semantic search requires SQLite:
+
+```bash
+# macOS
+brew install sqlite
+
+# Debian/Ubuntu
+sudo apt install sqlite3 libsqlite3-dev
+
+# RHEL/Fedora
+sudo dnf install sqlite sqlite-devel
+```
+
+The explore and apply skills also leverage search to automatically retrieve relevant history as context during workflows.
 
 ## Updating
 

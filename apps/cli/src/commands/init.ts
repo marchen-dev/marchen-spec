@@ -2,7 +2,7 @@ import type { ModelDownloadProgress } from '@marchen-spec/core'
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
 import { AGENT_PROVIDERS } from '@marchen-spec/config'
-import { ModelManager } from '@marchen-spec/core'
+import { ModelManager, SearchManager } from '@marchen-spec/core'
 import { createContext } from '../utils/context.js'
 
 /** 模型类型显示名称 */
@@ -99,31 +99,41 @@ export function registerInitCommand(program: Command): void {
         .join(', ')
       p.log.success(`已为 ${names} 生成 skills 文件`)
 
-      // 询问是否下载搜索模型
-      const modelManager = new ModelManager()
-      const hasModels = await modelManager.hasLocalModels()
+      // 检测搜索环境
+      const search = new SearchManager(workspace)
+      const qmdAvailable = await search.isAvailable()
 
-      if (hasModels) {
-        p.log.info('语义搜索已就绪')
+      if (!qmdAvailable) {
+        p.log.warn(
+          '语义搜索不可用（缺少 SQLite 依赖），使用基础关键词搜索',
+        )
+        p.log.info('安装 SQLite 后可通过 marchen search 启用语义搜索')
       } else {
-        const downloadModels = await p.confirm({
-          message: '是否启用语义搜索？（需要下载约 2GB 模型）',
-          initialValue: false,
-        })
+        const modelManager = new ModelManager()
+        const hasModels = await modelManager.hasLocalModels()
 
-        if (!p.isCancel(downloadModels) && downloadModels) {
-          const spinner = p.spinner()
-          spinner.start('下载搜索模型...')
-          await modelManager.ensureModels({
-            onProgress: (prog) => {
-              spinner.message(formatModelProgress(prog))
-            },
-          })
-          spinner.stop('语义搜索已启用')
+        if (hasModels) {
+          p.log.info('语义搜索已就绪')
         } else {
-          p.log.info(
-            '使用基础关键词搜索，后续可通过 marchen search --rebuild 启用语义搜索',
-          )
+          const downloadModels = await p.confirm({
+            message: '是否启用语义搜索？（需要下载约 2GB 模型）',
+            initialValue: false,
+          })
+
+          if (!p.isCancel(downloadModels) && downloadModels) {
+            const spinner = p.spinner()
+            spinner.start('下载搜索模型...')
+            await modelManager.ensureModels({
+              onProgress: (prog) => {
+                spinner.message(formatModelProgress(prog))
+              },
+            })
+            spinner.stop('语义搜索已启用')
+          } else {
+            p.log.info(
+              '使用基础关键词搜索，后续可通过 marchen search --rebuild 启用语义搜索',
+            )
+          }
         }
       }
 

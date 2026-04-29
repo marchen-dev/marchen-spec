@@ -27,6 +27,8 @@ export interface SearchOptions {
 export interface PrepareOptions {
   /** 模型下载进度回调 */
   readonly onModelProgress?: (progress: ModelDownloadProgress) => void
+  /** 本地无模型时是否触发下载，默认 false（降级为 BM25） */
+  readonly downloadIfMissing?: boolean
 }
 
 /**
@@ -67,14 +69,14 @@ export class SearchManager {
     const { ModelManager } = await import('./model-manager.js')
     const modelManager = new ModelManager()
 
-    if (options?.onModelProgress) {
-      const paths = await modelManager.ensureModels({
-        onProgress: options.onModelProgress,
-      })
-      modelManager.applyEnv(paths)
-      this.modelsReady = true
-    } else if (await modelManager.hasLocalModels()) {
-      const paths = await modelManager.ensureModels()
+    const shouldLoad =
+      options?.downloadIfMissing || (await modelManager.hasLocalModels())
+
+    if (shouldLoad) {
+      const ensureOpts = options?.onModelProgress
+        ? { onProgress: options.onModelProgress }
+        : undefined
+      const paths = await modelManager.ensureModels(ensureOpts)
       modelManager.applyEnv(paths)
       this.modelsReady = true
     }

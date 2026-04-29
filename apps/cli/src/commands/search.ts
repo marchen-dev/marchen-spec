@@ -79,6 +79,7 @@ export function registerSearchCommand(program: Command): void {
             onModelProgress: (prog) => {
               spinner?.message(formatModelProgress(prog))
             },
+            downloadIfMissing: false,
           })
           spinner?.stop('搜索引擎就绪')
 
