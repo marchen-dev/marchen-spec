@@ -50,12 +50,6 @@ importers:
       '@clack/prompts':
         specifier: ^0.10.1
         version: 0.10.1
-      '@marchen-spec/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@marchen-spec/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
       '@tobilu/qmd':
         specifier: ^2.1.0
         version: 2.1.0(typescript@5.9.3)
@@ -68,6 +62,13 @@ importers:
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
+    devDependencies:
+      '@marchen-spec/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@marchen-spec/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
 
   packages/config:
     dependencies:
