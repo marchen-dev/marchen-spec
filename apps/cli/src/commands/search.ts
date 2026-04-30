@@ -8,7 +8,7 @@ import { formatModelProgress } from '../utils/model-progress.js'
 /**
  * 注册 search 命令
  *
- * 搜索归档变更历史（Hybrid Search 或 BM25）
+ * 搜索归档变更历史（Hybrid Search）
  *
  * @param program - Commander 程序实例
  */

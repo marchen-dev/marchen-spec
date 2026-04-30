@@ -1,8 +1,4 @@
-import type {
-  HybridQueryResult,
-  SearchResult as QmdSearchResult,
-  QMDStore,
-} from '@tobilu/qmd'
+import type { HybridQueryResult, QMDStore } from '@tobilu/qmd'
 import type { ModelDownloadProgress } from './model-manager.js'
 import type { Workspace } from './workspace.js'
 import { mkdir } from 'node:fs/promises'
@@ -40,7 +36,6 @@ export class SearchManager {
   private store: QMDStore | null = null
   private available: boolean | null = null
   private prepared = false
-  private modelsReady = false
 
   constructor(private readonly workspace: Workspace) {}
 
@@ -74,7 +69,6 @@ export class SearchManager {
     try {
       const paths = await modelManager.ensureModels(ensureOpts)
       modelManager.applyEnv(paths)
-      this.modelsReady = true
     } catch {
       throw new StateError('搜索模型未安装', '请运行 marchen update 下载模型')
     }
@@ -83,7 +77,7 @@ export class SearchManager {
     this.prepared = true
   }
 
-  /** 搜索归档内容，无模型时降级为 BM25 */
+  /** 搜索归档内容 */
   async search(
     query: string,
     options?: SearchOptions,
@@ -93,28 +87,21 @@ export class SearchManager {
     const limit = options?.limit ?? 5
     const minScore = options?.minScore ?? 0.3
 
-    if (this.modelsReady) {
-      return this.hybridSearch(store, query, limit, minScore)
-    }
-    return this.ftsSearch(store, query, limit)
+    return this.hybridSearch(store, query, limit, minScore)
   }
 
-  /** 全量索引（扫描 + embedding），无模型时跳过 embed */
+  /** 全量索引（扫描 + embedding） */
   async index(): Promise<void> {
     const store = await this.getStore()
     await store.update({ collections: ['archive'] })
-    if (this.modelsReady) {
-      await store.embed()
-    }
+    await store.embed()
   }
 
-  /** 增量索引（archive 后调用），无模型时跳过 embed */
+  /** 增量索引（archive 后调用） */
   async indexChange(): Promise<void> {
     const store = await this.getStore()
     await store.update({ collections: ['archive'] })
-    if (this.modelsReady) {
-      await store.embed()
-    }
+    await store.embed()
   }
 
   /** 释放资源 */
@@ -122,7 +109,6 @@ export class SearchManager {
     await this.store?.close()
     this.store = null
     this.prepared = false
-    this.modelsReady = false
   }
 
   /** 索引为空时自动触发首次扫描 */
@@ -130,9 +116,7 @@ export class SearchManager {
     const status = await store.getStatus()
     if (status.totalDocuments === 0) {
       await store.update({ collections: ['archive'] })
-      if (this.modelsReady) {
-        await store.embed()
-      }
+      await store.embed()
     }
   }
 
@@ -150,28 +134,6 @@ export class SearchManager {
         title: r.title,
         score: r.score,
         snippet: r.bestChunk,
-      }
-      if (r.context) {
-        return { ...result, context: r.context }
-      }
-      return result
-    })
-  }
-
-  /** BM25 全文检索（降级模式） */
-  private async ftsSearch(
-    store: QMDStore,
-    query: string,
-    limit: number,
-  ): Promise<SearchResult[]> {
-    const results = await store.searchLex(query, { limit })
-    return results.map((r: QmdSearchResult) => {
-      const snippet = r.body?.slice(0, 200) ?? ''
-      const result: SearchResult = {
-        path: r.displayPath,
-        title: r.title,
-        score: r.score,
-        snippet,
       }
       if (r.context) {
         return { ...result, context: r.context }

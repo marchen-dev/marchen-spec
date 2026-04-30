@@ -40,3 +40,4 @@
 - 2026-04-29: [refine-search-terminology](./archive/2026-04-29-refine-search-terminology/) — 统一搜索术语为 Hybrid Search 和 BM25，覆盖 CLI 文案、JSDoc 和 README
 - 2026-04-29: [type-safe-config](./archive/2026-04-29-type-safe-config/) — config.yaml 读取类型安全化：新增 WorkspaceConfig 接口和 CONFIG_FILE_NAME 常量，SearchMode 下沉到 shared
 - 2026-04-29: [improve-explore-search-guidance](./archive/2026-04-29-improve-explore-search-guidance/) — 优化 explore skill 的历史检索策略：changelog 优先、搜索补充，加入 RAG 查询构造指引
+- 2026-04-30: [simplify-search-config](./archive/2026-04-30-simplify-search-config/) — 搜索配置从三模式(auto/bm25/semantic)简化为 search.enabled 布尔开关
