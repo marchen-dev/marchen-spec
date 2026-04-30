@@ -1,7 +1,6 @@
 import type {
   AgentProvider,
   PackageBoundary,
-  SearchMode,
   UpdateResult,
   WorkspaceConfig,
 } from '@marchen-spec/shared'
@@ -31,8 +30,8 @@ export interface InitializeOptions {
   readonly providers?: readonly string[]
   /** CLI 版本号，传入时写入 config.yaml */
   readonly version?: string
-  /** 搜索模式，写入 config.yaml 的 search.mode */
-  readonly searchMode?: SearchMode
+  /** 是否启用搜索，写入 config.yaml 的 search.enabled */
+  readonly searchEnabled?: boolean
 }
 
 /** 更新选项 */
@@ -133,7 +132,7 @@ export class Workspace {
     if (options?.version) {
       configData.version = options.version
     }
-    configData.search = { mode: options?.searchMode ?? 'auto' }
+    configData.search = { enabled: options?.searchEnabled ?? false }
     await writeYaml(configPath, configData)
 
     // 创建 .gitkeep 占位文件
@@ -210,8 +209,13 @@ export class Workspace {
     }
 
     config.version = options.version
+    // 迁移旧 search.mode → search.enabled
+    const rawSearch = config.search as Record<string, unknown> | undefined
+    if (rawSearch && 'mode' in rawSearch) {
+      config.search = { enabled: rawSearch.mode === 'semantic' }
+    }
     if (!config.search) {
-      config.search = { mode: 'auto' }
+      config.search = { enabled: false }
     }
     await writeYaml(configPath, config)
 

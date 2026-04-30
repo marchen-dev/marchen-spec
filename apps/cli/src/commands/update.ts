@@ -46,11 +46,11 @@ export function registerUpdateCommand(program: Command): void {
           p.log.success('config.yaml 版本已更新')
         }
 
-        // 按 search.mode 同步模型状态
+        // 按 search.enabled 同步模型状态
         const config = await workspace.readConfig()
-        const searchMode = config.search?.mode ?? 'auto'
+        const searchEnabled = config.search?.enabled ?? false
 
-        if (searchMode === 'semantic') {
+        if (searchEnabled) {
           const modelManager = new ModelManager()
           const hasModels = await modelManager.hasLocalModels()
 
@@ -66,14 +66,6 @@ export function registerUpdateCommand(program: Command): void {
             })
             spinner.stop('Hybrid Search 已启用')
           }
-        } else if (searchMode === 'auto') {
-          const modelManager = new ModelManager()
-          const hasModels = await modelManager.hasLocalModels()
-          p.log.info(
-            hasModels
-              ? '搜索模式: Auto（Hybrid Search 可用）'
-              : '搜索模式: Auto（BM25 全文检索）',
-          )
         }
 
         p.outro('更新完成！')

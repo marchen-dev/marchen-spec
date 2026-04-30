@@ -92,7 +92,7 @@ marchen search "认证" --min-score 0.5  # 设置最低分数阈值
 marchen search "认证" --rebuild        # 重建索引后搜索
 ```
 
-首次使用时会自动下载所需模型（约 2GB）。如果模型未安装，自动降级为 BM25 全文检索。
+首次初始化时可选择启用搜索，启用后会下载所需模型（约 2GB）。未启用搜索时，AI skill 会自动回退到读取 changelog.md 获取历史上下文。
 
 explore 和 apply skill 也会利用搜索能力，在工作流中自动检索相关历史作为上下文。
 

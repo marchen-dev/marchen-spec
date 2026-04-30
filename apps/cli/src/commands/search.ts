@@ -1,4 +1,3 @@
-import type { SearchMode } from '@marchen-spec/core'
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
 import { SearchManager, Workspace } from '@marchen-spec/core'
@@ -41,18 +40,24 @@ export function registerSearchCommand(program: Command): void {
             process.exit(1)
           }
 
-          // 读取 config.yaml 的搜索模式
-          let searchMode: SearchMode | undefined
+          // 检查搜索是否启用
+          let searchEnabled = false
           try {
             const config = await workspace.readConfig()
-            searchMode = config.search?.mode
+            searchEnabled = config.search?.enabled ?? false
           } catch {
-            // config.yaml 不存在时使用默认行为
+            // config.yaml 不存在时视为未启用
+          }
+
+          if (!searchEnabled) {
+            p.log.error(
+              '搜索未启用。请在 config.yaml 中设置 search.enabled: true 后运行 marchen update',
+            )
+            process.exit(1)
           }
 
           spinner?.start('准备搜索引擎...')
           await search.prepare({
-            ...(searchMode && { mode: searchMode }),
             onModelProgress: (prog) => {
               spinner?.message(formatModelProgress(prog))
             },

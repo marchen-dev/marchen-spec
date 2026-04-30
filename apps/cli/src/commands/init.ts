@@ -1,4 +1,3 @@
-import type { SearchMode } from '@marchen-spec/core'
 import type { Command } from 'commander'
 import * as p from '@clack/prompts'
 import { AGENT_PROVIDERS } from '@marchen-spec/config'
@@ -58,30 +57,13 @@ export function registerInitCommand(program: Command): void {
 
       const version = program.version() as string
 
-      // 选择搜索模式
-      const searchMode = await p.select<SearchMode>({
-        message: '选择搜索模式',
-        options: [
-          {
-            value: 'auto' as SearchMode,
-            label: 'Auto',
-            hint: '检测本地模型，有则 Hybrid，无则 BM25',
-          },
-          {
-            value: 'semantic' as SearchMode,
-            label: 'Hybrid Search',
-            hint: 'BM25 + 向量检索 + 重排序（需下载约 2GB 模型）',
-          },
-          {
-            value: 'bm25' as SearchMode,
-            label: 'BM25',
-            hint: '全文关键词检索，无需模型',
-          },
-        ],
-        initialValue: 'auto' as SearchMode,
+      // 是否启用搜索
+      const searchEnabled = await p.confirm({
+        message: '是否启用搜索？（需下载约 2GB 模型）',
+        initialValue: false,
       })
 
-      if (p.isCancel(searchMode)) {
+      if (p.isCancel(searchEnabled)) {
         p.cancel('操作已取消')
         process.exit(0)
       }
@@ -90,7 +72,7 @@ export function registerInitCommand(program: Command): void {
       await workspace.initialize({
         providers: selectedProviders,
         version,
-        searchMode,
+        searchEnabled,
       })
 
       const names = (selectedProviders as string[])
@@ -98,8 +80,8 @@ export function registerInitCommand(program: Command): void {
         .join(', ')
       p.log.success(`已为 ${names} 生成 skills 文件`)
 
-      // 按搜索模式处理模型
-      if (searchMode === 'semantic') {
+      // 启用搜索时下载模型
+      if (searchEnabled) {
         const modelManager = new ModelManager()
         const spinner = p.spinner()
         spinner.start('下载搜索模型...')
@@ -109,10 +91,6 @@ export function registerInitCommand(program: Command): void {
           },
         })
         spinner.stop('Hybrid Search 已启用')
-      } else if (searchMode === 'auto') {
-        p.log.info('搜索模式: Auto（有模型时使用 Hybrid Search）')
-      } else {
-        p.log.info('搜索模式: BM25 全文检索')
       }
 
       p.outro('MarchenSpec 初始化成功！')

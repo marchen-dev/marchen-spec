@@ -92,7 +92,7 @@ marchen search "auth" --min-score 0.5     # Set minimum score threshold
 marchen search "auth" --rebuild           # Rebuild index before searching
 ```
 
-Required models (~2GB) are downloaded automatically on first use. If models are not installed, it falls back to BM25 full-text search.
+You can enable search during `marchen init`, which downloads the required models (~2GB). When search is not enabled, AI skills automatically fall back to reading changelog.md for historical context.
 
 The explore and apply skills also leverage search to automatically retrieve relevant history as context during workflows.
 

@@ -250,9 +250,6 @@ export interface UpdateResult {
 // 工作区配置（config.yaml）
 // ============================================================
 
-/** 搜索模式 */
-export type SearchMode = 'auto' | 'bm25' | 'semantic'
-
 /**
  * 工作区配置
  *
@@ -267,6 +264,6 @@ export interface WorkspaceConfig {
   readonly version?: string
   /** 搜索配置 */
   readonly search?: {
-    readonly mode: SearchMode
+    readonly enabled: boolean
   }
 }

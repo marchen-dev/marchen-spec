@@ -26,7 +26,6 @@ export type {
   InstructionsResult,
   PackageBoundary,
   SchemaDefinition,
-  SearchMode,
   StatusResult,
   TaskItem,
   UpdateResult,
