@@ -44,3 +44,4 @@
 - 2026-05-03: [extract-model-auth-header](./archive/2026-05-03-extract-model-auth-header/) — 提取模型认证 header 为常量，统一 manifest 和下载请求的认证
 - 2026-05-03: [cache-local-manifest](./archive/2026-05-03-cache-local-manifest/) — search 使用本地缓存 manifest 解析模型路径，跳过网络请求和 sha256 校验
 - 2026-05-03: [fix-resolve-local-models-fallback](./archive/2026-05-03-fix-resolve-local-models-fallback/) — resolveLocalModels 在本地 manifest 缺失时 fallback 到 ensureModels 自动生成
+- 2026-05-03: [fix-update-missing-providers](./archive/2026-05-03-fix-update-missing-providers/) — update 在 providers 缺失时 fallback 到默认值，修复老项目升级不生成 skill 的问题

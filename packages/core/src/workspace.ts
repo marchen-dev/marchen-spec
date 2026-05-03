@@ -176,6 +176,7 @@ export class Workspace {
     const configPath = join(this.specDir, CONFIG_FILE_NAME)
     const config = await readYaml<Record<string, unknown>>(configPath)
 
+    // 版本一致时跳过，避免重复写入
     const previousVersion = (config.version as string) ?? null
     if (previousVersion === options.version) {
       return {
@@ -187,7 +188,12 @@ export class Workspace {
       }
     }
 
-    const providerIds = (config.providers as string[]) ?? []
+    // 老项目 config.yaml 可能没有 providers 字段，fallback 到默认值
+    const rawProviders = config.providers as string[] | undefined
+    const providerIds =
+      rawProviders && rawProviders.length > 0
+        ? rawProviders
+        : [...DEFAULT_PROVIDER_IDS]
     const providers = providerIds
       .map((id) => AGENT_PROVIDERS[id])
       .filter((p): p is AgentProvider => p != null)
@@ -198,6 +204,7 @@ export class Workspace {
     const skillTemplateCount = Object.keys(SKILL_TEMPLATES).length
     const commandTemplateCount = Object.keys(COMMAND_TEMPLATES).length
 
+    // 覆盖写入最新模板文件
     for (const provider of providers) {
       await this.generateSkills(provider.skillDir)
       skillCount += skillTemplateCount
@@ -208,7 +215,11 @@ export class Workspace {
       providerNames.push(provider.name)
     }
 
+    // 补全缺失的配置字段并持久化
     config.version = options.version
+    if (!config.providers) {
+      config.providers = [...providerIds]
+    }
     // 迁移旧 search.mode → search.enabled
     const rawSearch = config.search as Record<string, unknown> | undefined
     if (rawSearch && 'mode' in rawSearch) {
