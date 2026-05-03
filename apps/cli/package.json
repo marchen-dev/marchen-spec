@@ -1,6 +1,6 @@
 {
   "name": "marchen-spec",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Spec-driven workflow CLI for AI coding agents",
   "license": "MIT",
   "type": "module",
