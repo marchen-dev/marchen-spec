@@ -96,7 +96,7 @@ export function registerSearchCommand(program: Command): void {
                   : pc.dim(`${score}%`)
             p.log.info(`${pc.bold(r.path)}  ${scoreColor}`)
             if (r.snippet) {
-              p.log.message(pc.dim(r.snippet.slice(0, 200)))
+              p.log.message(pc.dim(r.snippet))
             }
           }
 
