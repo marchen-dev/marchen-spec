@@ -1,5 +1,4 @@
 import type { HybridQueryResult, QMDStore } from '@tobilu/qmd'
-import type { ModelDownloadProgress } from './model-manager.js'
 import type { Workspace } from './workspace.js'
 import { mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
@@ -18,12 +17,6 @@ export interface SearchResult {
 export interface SearchOptions {
   readonly limit?: number
   readonly minScore?: number
-}
-
-/** 准备选项 */
-export interface PrepareOptions {
-  /** 模型下载进度回调 */
-  readonly onModelProgress?: (progress: ModelDownloadProgress) => void
 }
 
 /**
@@ -54,20 +47,17 @@ export class SearchManager {
   /**
    * 准备搜索引擎。
    *
-   * 加载模型并初始化 store，模型不存在时抛出 StateError。
-   * 幂等，重复调用立即返回。
+   * 从本地缓存的 manifest 解析模型路径并初始化 store。
+   * 模型未安装时抛出 StateError。幂等，重复调用立即返回。
    */
-  async prepare(options?: PrepareOptions): Promise<void> {
+  async prepare(): Promise<void> {
     if (this.prepared) return
 
     const { ModelManager } = await import('./model-manager.js')
     const modelManager = new ModelManager()
 
-    const ensureOpts = options?.onModelProgress
-      ? { onProgress: options.onModelProgress }
-      : undefined
     try {
-      const paths = await modelManager.ensureModels(ensureOpts)
+      const paths = await modelManager.resolveLocalModels()
       modelManager.applyEnv(paths)
     } catch {
       throw new StateError('搜索模型未安装', '请运行 marchen update 下载模型')

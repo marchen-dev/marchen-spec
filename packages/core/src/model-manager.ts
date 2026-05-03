@@ -5,17 +5,25 @@ import {
   ensureDir,
   exists,
   getFileSize,
+  readFile,
   removeFile,
   renameFile,
   sha256File,
+  writeFile,
 } from '@marchen-spec/fs'
-import { ValidationError } from '@marchen-spec/shared'
+import { StateError, ValidationError } from '@marchen-spec/shared'
 
 /** 默认 QMD 模型 manifest 地址 */
 const DEFAULT_MANIFEST_URL = 'https://models.suemor.com/qmd/manifest.json'
 
 /** 默认 QMD 模型目录 */
 const DEFAULT_MODEL_DIR = join(homedir(), '.marchen', 'models', 'qmd')
+
+/** 本地 manifest 缓存路径 */
+const LOCAL_MANIFEST_PATH = join(DEFAULT_MODEL_DIR, 'manifest.json')
+
+/** 模型服务认证 headers */
+const MODEL_AUTH_HEADERS = { 'X-Model-Token': 'suemor-qmd-2026' }
 
 /** QMD 模型类型 */
 export type QmdModelKind = 'embed' | 'generate' | 'rerank'
@@ -109,6 +117,8 @@ export class ModelManager {
       options,
     )
 
+    await this.saveLocalManifest(manifest)
+
     return { embed, generate, rerank }
   }
 
@@ -123,9 +133,45 @@ export class ModelManager {
     process.env.QMD_RERANK_MODEL = paths.rerank
   }
 
+  /**
+   * 从本地缓存的 manifest 解析模型路径。
+   *
+   * 仅检查文件存在性，不做 sha256 校验，适用于 search 等高频场景。
+   * 本地 manifest 不存在时自动 fallback 到 ensureModels 生成。
+   *
+   * @returns 本地模型绝对路径
+   */
+  async resolveLocalModels(): Promise<QmdModelPaths> {
+    if (!(await exists(LOCAL_MANIFEST_PATH))) {
+      return this.ensureModels()
+    }
+
+    const raw = await readFile(LOCAL_MANIFEST_PATH)
+    const manifest = JSON.parse(raw) as QmdModelManifest
+
+    const kinds: QmdModelKind[] = ['embed', 'generate', 'rerank']
+    const paths: Record<string, string> = {}
+
+    for (const kind of kinds) {
+      const item = manifest.models[kind]
+      const filePath = resolve(DEFAULT_MODEL_DIR, item.file)
+      if (!(await exists(filePath))) {
+        throw new StateError(
+          `模型文件缺失: ${item.file}`,
+          '请运行 marchen update 下载模型',
+        )
+      }
+      paths[kind] = filePath
+    }
+
+    return paths as unknown as QmdModelPaths
+  }
+
   /** 获取远程模型 manifest */
   private async fetchManifest(): Promise<QmdModelManifest> {
-    const response = await fetch(DEFAULT_MANIFEST_URL)
+    const response = await fetch(DEFAULT_MANIFEST_URL, {
+      headers: MODEL_AUTH_HEADERS,
+    })
     if (!response.ok) {
       throw new ValidationError(
         `模型 manifest 下载失败: HTTP ${response.status}`,
@@ -170,6 +216,7 @@ export class ModelManager {
           totalBytes: progress.totalBytes ?? item.size,
         })
       },
+      headers: MODEL_AUTH_HEADERS,
     })
 
     options?.onProgress?.({ model: kind, file: item.file, stage: 'verifying' })
@@ -198,5 +245,10 @@ export class ModelManager {
 
     const hash = await sha256File(filePath)
     return hash === item.sha256
+  }
+
+  /** 将 manifest 缓存到本地文件 */
+  private async saveLocalManifest(manifest: QmdModelManifest): Promise<void> {
+    await writeFile(LOCAL_MANIFEST_PATH, JSON.stringify(manifest, null, 2))
   }
 }

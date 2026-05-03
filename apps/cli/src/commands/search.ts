@@ -3,7 +3,6 @@ import * as p from '@clack/prompts'
 import { SearchManager, Workspace } from '@marchen-spec/core'
 import pc from 'picocolors'
 import { handleError } from '../utils/error.js'
-import { formatModelProgress } from '../utils/model-progress.js'
 
 /**
  * 注册 search 命令
@@ -57,11 +56,7 @@ export function registerSearchCommand(program: Command): void {
           }
 
           spinner?.start('准备搜索引擎...')
-          await search.prepare({
-            onModelProgress: (prog) => {
-              spinner?.message(formatModelProgress(prog))
-            },
-          })
+          await search.prepare()
           spinner?.stop('搜索引擎就绪')
 
           if (options.rebuild) {

@@ -100,7 +100,11 @@ describe('binary 二进制文件操作', () => {
     it('应该下载文件并自动创建父目录', async () => {
       const outputPath = join(testDir, 'dl', 'nested', 'file.txt')
 
-      await downloadFile('https://httpbin.org/robots.txt', outputPath)
+      await downloadFile('https://httpbin.org/robots.txt', outputPath, {
+        headers: {
+          'X-Test-Token': 'test-token',
+        },
+      })
 
       const content = await readFile(outputPath)
       expect(content.length).toBeGreaterThan(0)

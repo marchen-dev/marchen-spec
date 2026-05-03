@@ -20,6 +20,7 @@ export interface DownloadProgress {
 export interface DownloadFileOptions {
   /** 下载进度回调 */
   readonly onProgress?: (progress: DownloadProgress) => void
+  readonly headers?: Record<string, string>
 }
 
 /**
@@ -39,7 +40,9 @@ export async function downloadFile(
   await ensureDir(dirname(outputPath))
 
   try {
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      headers: options?.headers ?? {},
+    })
     if (!response.ok || !response.body) {
       throw new Error(`HTTP ${response.status}`)
     }
