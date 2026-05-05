@@ -1,6 +1,6 @@
 {
   "name": "marchenspec",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "private": true,
   "description": "Spec-driven workflow CLI for AI coding agents",
   "type": "module",
