@@ -3,6 +3,7 @@ import { ValidationError } from '@marchen-spec/shared'
 import {
   DESIGN_TEMPLATE,
   PROPOSAL_TEMPLATE,
+  SPEC_TEMPLATE,
   TASKS_TEMPLATE,
 } from './templates.js'
 
@@ -54,11 +55,22 @@ export const SCHEMAS: Record<string, SchemaDefinition> = {
         id: 'specs',
         generates: 'specs/',
         requires: ['proposal'],
+        template: SPEC_TEMPLATE,
         instruction: `根据 proposal 中列出的能力，为每个能力创建 specs/<name>/spec.md。
-- 每个需求用 '### 需求:' 开头，使用 SHALL/MUST 表述
-- 每个场景用 '#### 场景:' 开头，使用 WHEN/THEN 格式
+
+格式规则：
+- 以 '## 目的' 开头，一两句话说明这个能力的领域职责
+- 每个需求用 '### 需求:' 开头，标题后必须有描述文本（用 SHALL/MUST 表述行为）
+- 每个场景用 '#### 场景:' 开头（必须 4 个 #）
+- 场景内容用列表格式，关键字加粗：- **GIVEN** / - **WHEN** / - **THEN** / - **AND**
+- GIVEN 描述前置条件（可省略，但推荐写明）
 - 每个需求至少一个场景
-- 场景应该是可测试的`,
+- 场景应该是可测试的（每个场景对应一个潜在的 test case）
+
+内容约束：
+- 只描述可观察行为，不描述实现方式
+- 不包含内部类名、函数名、框架/库选择等实现细节（这些属于 design.md）
+- 使用 RFC 2119 关键字表达需求强度：SHALL/MUST（必须）、SHOULD（推荐）、MAY（可选）`,
       },
       {
         id: 'design',

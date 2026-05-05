@@ -48,6 +48,23 @@ export const DESIGN_TEMPLATE = `## 背景
 <!-- 已知风险和权衡 -->
 `
 
+/** spec.md 模板 */
+export const SPEC_TEMPLATE = `## 目的
+
+<!-- 这个能力的领域职责，一两句话 -->
+
+### 需求: <!-- 需求名称 -->
+
+<!-- 系统 SHALL/MUST 做什么（必须有描述文本） -->
+
+#### 场景: <!-- 场景名称 -->
+
+- **GIVEN** <!-- 前置条件/上下文 -->
+- **WHEN** <!-- 触发动作 -->
+- **THEN** <!-- 期望结果 -->
+- **AND** <!-- 追加条件或结果 -->
+`
+
 /** tasks.md 模板 */
 export const TASKS_TEMPLATE = `## 1. <!-- 任务组名称 -->
 

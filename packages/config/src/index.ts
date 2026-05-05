@@ -14,6 +14,7 @@ export type { SkillTemplate } from './skills.js'
 export {
   DESIGN_TEMPLATE,
   PROPOSAL_TEMPLATE,
+  SPEC_TEMPLATE,
   TASKS_TEMPLATE,
 } from './templates.js'
 

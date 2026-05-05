@@ -8,3 +8,6 @@ repomix-output.xml
 .worktrees
 .claude/worktrees
 .search/
+.hatch-pet-runs
+hatch-runs
+tmp
